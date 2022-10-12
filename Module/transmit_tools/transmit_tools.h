@@ -12,9 +12,9 @@
 #include <stdio.h>
 #include <string.h>
 #include "stm32f746xx.h"
-#include "stm32f7xx_it.h"
-#include "stm32f7xx_ll_utils.h"
-#include "stm32f7xx_ll_usart.h"
+//#include "stm32f7xx_it.h"
+//#include "stm32f7xx_ll_utils.h"
+//#include "stm32f7xx_ll_usart.h"
 #include <vector>
 #include <queue>
 #include <string>
@@ -24,17 +24,17 @@
 
 //common transmit functions
 //----------------------------------------------------------------------------------------UART
-int HALUsartTransmit(UART_HandleTypeDef* huartx, uint8_t* todata, int datalength);
-int HALUsartReceive(UART_HandleTypeDef* huartx, uint8_t* fromdata, uint16_t datalength);
-void LLUsartTransmit(USART_TypeDef *USARTx, std::string data);
-void LLUsartReceive(USART_TypeDef *USARTx);
+int HAL_UsartTransmit(UART_HandleTypeDef* huartx, uint8_t* todata, int datalength);
+int HAL_UsartReceive(UART_HandleTypeDef* huartx, uint8_t* fromdata, uint16_t datalength);
+//void LLUsartTransmit(USART_TypeDef *USARTx, std::string data);
+//void LLUsartReceive(USART_TypeDef *USARTx);
 
 //----------------------------------------------------------------------------------------CANOpen
-int HALCANTransmit(CAN_HandleTypeDef* hcanx, const CAN_TxHeaderTypeDef *pHeader,
+int HAL_CANTransmit(CAN_HandleTypeDef* hcanx, const CAN_TxHeaderTypeDef *pHeader,
 					const uint8_t *aData, uint32_t *pTxMailbox);
 
 
-int HALCANReceive(CAN_HandleTypeDef *hcan, CAN_RxHeaderTypeDef *pHeader, uint8_t *aData);
+int HAL_CANReceive(CAN_HandleTypeDef *hcan, CAN_RxHeaderTypeDef *pHeader, uint8_t *aData);
 
 
 

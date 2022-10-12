@@ -11,13 +11,13 @@
 
 
 //----------------------------------------------------------------------------------------UART
-int HALUsartTransmit(UART_HandleTypeDef* huartx, uint8_t* todata, int datalength)
+int HAL_UsartTransmit(UART_HandleTypeDef* huartx, uint8_t* todata, int datalength)
 {
 	//return HAL_UART_Transmit_IT(huartx, todata, datalength);
 	return HAL_UART_Transmit(huartx, todata, datalength, 10);
 }
 
-int HALUsartReceive(UART_HandleTypeDef* huartx, uint8_t* fromdata, uint16_t datalength)
+int HAL_UsartReceive(UART_HandleTypeDef* huartx, uint8_t* fromdata, uint16_t datalength)
 {
 	//return HAL_UART_Receive_IT(huartx, fromdata, datalength);
 	return HAL_UART_Receive(huartx, fromdata, datalength, 10);
@@ -26,7 +26,7 @@ int HALUsartReceive(UART_HandleTypeDef* huartx, uint8_t* fromdata, uint16_t data
 
 
 //----------------------------------------------------------------------------------------CANOpen
-int HALCANTransmit(CAN_HandleTypeDef* hcanx, const CAN_TxHeaderTypeDef *pHeader,
+int HAL_CANTransmit(CAN_HandleTypeDef* hcanx, const CAN_TxHeaderTypeDef *pHeader,
 					const uint8_t *aData, uint32_t *pTxMailbox)
 {
 	return HAL_CAN_AddTxMessage(hcanx, pHeader, aData, pTxMailbox);
@@ -137,7 +137,7 @@ int HALModbusRtu::HALModbusRtuReceive()
 	total_buf_size_ = 1 + 1 + 1 + num_of_registers + 2; //ids + fc + number of data + data + crc
 	uint8_t tempdata[total_buf_size_] = {0,};
 
-	if(HALUsartReceive(this->huartx_, tempdata, total_buf_size_) == HAL_OK)
+	if(HAL_UsartReceive(this->huartx_, tempdata, total_buf_size_) == HAL_OK)
 	{
 		this->receive_data_.push(tempdata);
 		return HAL_OK;
@@ -148,7 +148,7 @@ int HALModbusRtu::HALModbusRtuReceive()
 
 int HALModbusRtu::HALModebusRtuSendData()
 {
-	return HALUsartTransmit(this->huartx_, this->send_data_.front(),
+	return HAL_UsartTransmit(this->huartx_, this->send_data_.front(),
 			(sizeof(&send_data_.front())/sizeof(send_data_.front()[0])));
 }
 

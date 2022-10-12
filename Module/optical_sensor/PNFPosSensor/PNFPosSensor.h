@@ -52,7 +52,7 @@ class PNFPosSensor
 		uint16_t index_;
 
 		//filter params
-		uint16_t max_filter_cnt_ = 0;
+		uint16_t max_filter_cnt_ = 5;
 		uint16_t now_filter_cnt_= 0;
 
 		//to see useful values
@@ -100,14 +100,14 @@ class PNFPosSensor
 
 		bool IsInfoFiltered();
 		void FilterCountUp();
-		void FilterStatusChanged();
+		void FilterCountReset();
 
 
 
 	public:
 		//virtual function for each sensors
 		virtual void DriveInit() = 0;
-		virtual bool DriveComm() = 0;
+		virtual void DriveComm() = 0;
 		virtual void DriveAnalysis() = 0;
 
 		//main functions

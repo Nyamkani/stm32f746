@@ -5,8 +5,8 @@
  *      Author: studio3s
  */
 
-#ifndef MODULE_OPTICAL_SENSOR_PGV100_H_
-#define MODULE_OPTICAL_SENSOR_PGV100_H_
+#ifndef MODULE_OPTICAL_SENSOR_PGV100_PGV100_H_
+#define MODULE_OPTICAL_SENSOR_PGV100_PGV100_H_
 
 #pragma once
 //===========================================================================
@@ -178,7 +178,7 @@ class PGV100 : public PNFPosSensor
 		//virtual for each sensors
 	private:
 		void DriveInit() override;
-		bool DriveComm() override;
+		void DriveComm() override;
 		void DriveAnalysis() override;
 
 	public:
@@ -193,4 +193,4 @@ class PGV100 : public PNFPosSensor
 
 
 
-#endif /* MODULE_OPTICAL_SENSOR_PGV100_H_ */
+#endif /* MODULE_OPTICAL_SENSOR_PGV100_PGV100_H_ */

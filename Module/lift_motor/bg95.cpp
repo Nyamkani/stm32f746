@@ -7,19 +7,17 @@
 
 #include <lift_motor/bg95.h>
 
-BG95::BG95(CAN_HandleTypeDef *hcanx, int Txid, int Rxid, int data_length)
+// TODO Auto-generated constructor stub
+BG95::BG95(CAN_HandleTypeDef *hcanx, int Txid, int Rxid)
 {
-	// TODO Auto-generated constructor stub
 	this->hcanx_ = hcanx;
 	this->Txid_ = Txid;
 	this->Rxid_ = Rxid;
-	this->data_length_ = data_length;
-
 }
 
+// TODO Auto-generated destructor stub
 BG95::~BG95()
 {
-	// TODO Auto-generated destructor stub
 	//if you using heap memory, delete all in this function
 }
 
@@ -28,9 +26,15 @@ void BG95::CAN_DataEnque(uint8_t *pData) {QueueSaveRequest((char*)pData);}
 //send or read function
 uint16_t BG95::TransmitSendRequest()
 {
-	char temp_data_[data_length_];
-	strcpy(temp_data_,RequestQueue.front());
-	HALCANTransmit(hcanx_, &TxHeader_, (unsigned char*)temp_data_, &TxMailbox_);
+	char temp_data_[RequestQueue.front().data_length_];
+
+	for(int i = 0; i<RequestQueue.front().data_length_; i++)
+	{
+		//strcpy(temp_data_[i], (const unsigned char)RequestQueue.front().Data_Byte_[i]);
+	}
+
+
+	HAL_CANTransmit(hcanx_, &TxHeader_, (unsigned char*)temp_data_, &TxMailbox_);
 	return 0;
 }
 
@@ -42,7 +46,7 @@ uint16_t BG95::TransmitReceiveResponse()
 
 //---------------------------------------------------------------Command queue functions
 //queue system functions
-void BG95::QueueSaveRequest(char* cmd){this->RequestQueue.push_back(cmd);}
+//void BG95::QueueSaveRequest(CANData_HandleTypeDef cmd){this->RequestQueue.push_back(cmd);}
 void BG95::QueueDeleteRequest(){this->RequestQueue.erase(RequestQueue.begin());}
 
 
@@ -54,7 +58,6 @@ void BG95::CAN_TxHandlerSetup()
 	this->TxHeader_.ExtId = 0x01;                  // Extended Identifier, 0 ~ 0x1FFFFFFF
 	this->TxHeader_.RTR = CAN_RTR_DATA;            // Frame Type, DATA or REMOTE
 	this->TxHeader_.IDE = CAN_ID_STD;              // Identified, STD or EXT
-	this->TxHeader_.DLC = data_length_;                       // Tx Frame length, 0 ~ 8 byte
 	this->TxHeader_.TransmitGlobalTime = DISABLE; 			 // timestamping en/disable.
 }
 
@@ -65,7 +68,6 @@ void BG95::CAN_RxHandlerSetup()
 	this->RxHeader_.ExtId = 0x01;                  // Extended Identifier, 0 ~ 0x1FFFFFFF
 	this->RxHeader_.RTR = CAN_RTR_DATA;            // Frame Type, DATA or REMOTE
 	this->RxHeader_.IDE = CAN_ID_STD;              // Identified, STD or EXT
-	this->RxHeader_.DLC = data_length_;                       // Tx Frame length, 0 ~ 8 byte
 }
 
 void BG95::HAL_CAN_Initialization()
@@ -127,8 +129,8 @@ void BG95::Initialization()
 	CAN_RxHandlerSetup();
 	HAL_CAN_Initialization();
 
-	if(TxData_ == nullptr) TxData_ = new uint8_t[data_length_];
-	if(RxData_ == nullptr) RxData_ = new uint8_t[data_length_];
+	//if(TxData_ == nullptr) TxData_ = new uint8_t[data_length_];
+	//if(RxData_ == nullptr) RxData_ = new uint8_t[data_length_];
 
 	//RegisterRequsetCmd();
 	//RegisterDefaultParam();

@@ -5,7 +5,7 @@
  *      Author: studio3s
  */
 
-#include <optical_sensor/pgv100.h>
+#include <optical_sensor/pgv100/pgv100.h>
 
 /* Global Variables ------------------------------------------------------------------*/
 
@@ -313,6 +313,14 @@ uint16_t PGV100::ProcessCheckErr(std::vector<uint16_t> temp_buf)
 	 //--------------------------------------------------------------------
 	 uint16_t state = 0x0000;
 
+	//Check Comm. Error
+	if(!comm_status_)
+	{
+		state = CommTimeout;
+		return state;
+	}
+
+	//If Comm Err is not, check others
 	if((temp_buf.back()) == ProcessChecksumData(temp_buf))    //Checksum error pass or not(POS_BUF[20] <--- check sum buffer)
 	{
 		if((temp_buf)[0] & 0x01)    //Err Occured
@@ -337,66 +345,33 @@ uint16_t PGV100::ProcessCheckErr(std::vector<uint16_t> temp_buf)
 uint16_t PGV100::ProcessGetTotalInfo()
 {
 	//0 .Copying temp. data from received data
-	std::vector<uint16_t> temp_buf_;
-	uint16_t prev_err = this->err_code_;
-	uint16_t now_err = 0;
-	bool prev_err_status = false;
-	bool now_err_status = false;
+	std::vector<uint16_t> temp_buf_ = this->pos_buf_;
 
-	//0. Timeout error handling
-	if(!comm_status_)
-	{
-		now_err = CommTimeout;
-	}
-	else
-	{
-		temp_buf_ = this->pos_buf_;
-		now_err = ProcessCheckErr(temp_buf_);
-	}
-
-	//0.-1 test code;
-	if(!this->init_done_)
-	{
-		this->init_done_ = true;
-		return this->err_code_;
-	}
-
-	//1. simplized error handle error =1, good = 0
-	if(prev_err>=1) {prev_err_status = true;}
-	if(now_err>=1) {now_err_status = true;}
-
-	//2. check color response -> no error check
+	//1. check color response -> no error check
 	if(max_read_buf_size_ == PGV100Color)  //response for changing colors
 	{
 		this->color_ = ProcessGetColorInfo(temp_buf_);
 		return this->err_code_;
 	}
 
-	//3. Check change to Error status
-	if(prev_err_status != now_err_status)
-	{
-		FilterStatusChanged();
-		this->err_code_ = now_err;
-		//return this->err_code_;
-	}
+	//2. Timeout or other error handling
+	uint16_t now_err = ProcessCheckErr(temp_buf_);
 
-	//4. wait until state is stabled(normal or error)
-	if(!IsInfoFiltered())
+	//3. simplized error handle error >=1, good = 0 and if error occur, error count is up
+	//4. when the Error count reached max count, return err code
+	if(now_err >= 1)
 	{
 		FilterCountUp();
-		this->err_code_ = now_err;
-		return this->err_code_;
+		if(IsInfoFiltered())
+		{
+			ResetAllData();
+			FilterCountReset();
+			this->err_code_ = now_err;
+		}
+		return 1;  //error occur
 	}
 
-	//5. Checking filtered status
-	if(now_err != Good)  //when response is not good.
-	{
-		this->err_code_ = now_err;
-		ResetAllData();
-		return this->err_code_;
-	}
-
-	//6. Processing data
+	//5. Processing data
 	switch(this->max_read_buf_size_)
 	{
 		case PGV100Dir:
@@ -411,7 +386,7 @@ uint16_t PGV100::ProcessGetTotalInfo()
 			this->ypos_ = ProcessGetYPosInfo(temp_buf_); 					  //--- Get Y POSITION
 			break;
 	}
-
+	FilterCountReset();
 	this->err_code_ = now_err;
 	return this->err_code_;
 }
@@ -423,24 +398,22 @@ void PGV100::DriveInit()
 	ReadBufferInit();
 }
 
-bool PGV100::DriveComm()
+void PGV100::DriveComm()
 {
 	if(TransmitSendRequest()!=HAL_OK || TransmitReceiveResponse()!=HAL_OK)
 	{
 		this->comm_status_ = false;
-		return 1;
 	}
 	else
 	{
 		this->comm_status_ = true;
-		return 0;
 	}
 }
 
 void PGV100::DriveAnalysis()
 {
-	QueueDeleteRequest();
 	ProcessGetTotalInfo();
+	QueueDeleteRequest();
 }
 
 //main functions

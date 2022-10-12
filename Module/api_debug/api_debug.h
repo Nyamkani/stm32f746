@@ -9,7 +9,7 @@
 #define MODULE_API_DEBUG_API_DEBUG_H_
 
 
-#include <optical_sensor/pgv100.h>
+#include <optical_sensor/pgv100/pgv100.h>
 #include <sensor_manager/sensor_manager.h>
 #include <transmit_tools/transmit_tools.h>
 

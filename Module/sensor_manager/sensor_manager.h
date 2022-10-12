@@ -10,7 +10,7 @@
 
 
 #include <math.h>
-#include <optical_sensor/pgv100.h>
+#include <optical_sensor/pgv100/pgv100.h>
 #include <stdlib.h>
 #include <stdint.h>
 #include <vector>

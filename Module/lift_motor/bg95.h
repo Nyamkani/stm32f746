@@ -21,14 +21,9 @@ enum bg95_err_code
 
 typedef struct
 {
-	uint8_t Byte1;
-	uint8_t Byte2;
-	uint8_t Byte3;
-	uint8_t Byte4;
-	uint8_t Byte5;
-	uint8_t Byte6;
-	uint8_t Byte7;
-	uint8_t Byte8;
+	int id_;
+	int data_length_;
+	unsigned char Data_Byte_[8];
 } CANData_HandleTypeDef;
 
 
@@ -39,15 +34,15 @@ class BG95
 {
 	/*Con., Deconstructor*/
 	public:
-		BG95(CAN_HandleTypeDef *hcanx, int Txid, int RXid, int data_length);
+		BG95(CAN_HandleTypeDef *hcanx, int Txid, int RXid);
 		virtual ~BG95();
 
 
 	private:
 		CAN_HandleTypeDef *hcanx_ = NULL;
 		//CAN_FilterTypeDef  sFilterConfig;
-		static CAN_TxHeaderTypeDef TxHeader_;
-		static CAN_RxHeaderTypeDef RxHeader_;
+		CAN_TxHeaderTypeDef TxHeader_;
+		CAN_RxHeaderTypeDef RxHeader_;
 		uint8_t *TxData_ = NULL;
 		uint8_t *RxData_ = NULL;
 		uint32_t TxMailbox_;
@@ -55,7 +50,6 @@ class BG95
 
 		int Txid_;
 		int Rxid_;
-		int data_length_ = 8;
 
 		int err_code_;
 		bool comm_status_;
@@ -63,7 +57,7 @@ class BG95
 
 
 		//queue
-		std::vector<char*> RequestQueue;
+		std::vector<CANData_HandleTypeDef> RequestQueue;
 
 	//---------------------------------------------------------------------------------Fuctions
 	private:
