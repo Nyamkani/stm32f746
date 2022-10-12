@@ -99,6 +99,7 @@ class PNFPosSensor
 		void QueueDeleteRequest();
 
 		bool IsInfoFiltered();
+		bool IsWorkDone();
 		void FilterCountUp();
 		void FilterCountReset();
 
@@ -113,7 +114,7 @@ class PNFPosSensor
 		//main functions
 		virtual void Initialization() = 0;
 		bool IsErrUp();
-		uint16_t Drive();
+		bool Drive();
 
 
 };

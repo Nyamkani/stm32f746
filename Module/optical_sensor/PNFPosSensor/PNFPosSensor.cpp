@@ -64,6 +64,12 @@ bool PNFPosSensor::IsInfoFiltered()
 	return (this->now_filter_cnt_>= this->max_filter_cnt_);
 }
 
+bool PNFPosSensor::IsWorkDone()
+{
+	return !(this->now_filter_cnt_ == 0);
+}
+
+
 void PNFPosSensor::FilterCountUp()
 {
 	if(this->now_filter_cnt_< this->max_filter_cnt_) this->now_filter_cnt_++;
@@ -83,7 +89,7 @@ bool PNFPosSensor::IsErrUp()
 }
 
 
-uint16_t PNFPosSensor::Drive()
+bool PNFPosSensor::Drive()
 {
 	DriveInit();
 
@@ -91,5 +97,5 @@ uint16_t PNFPosSensor::Drive()
 
 	DriveAnalysis();
 
-	return 0;
+	return IsWorkDone();
 }
