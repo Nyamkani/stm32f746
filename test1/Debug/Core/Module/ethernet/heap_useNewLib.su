@@ -1,0 +1,13 @@
+/home/studio3s/st/stm32cubeide_1.8.0_2/plugins/com.st.stm32cube.ide.mcu.externaltools.gnu-tools-for-stm32.10.3-2021.10.linux64_1.0.0.202111181127/tools/arm-none-eabi/include/reent.h:153:14:_sbrk_r	24	static
+../Core/Module/ethernet/heap_useNewLib.c:194:8:sbrk	16	static
+../Core/Module/ethernet/heap_useNewLib.c:196:8:_sbrk	16	static
+/home/studio3s/st/stm32cubeide_1.8.0_2/plugins/com.st.stm32cube.ide.mcu.externaltools.gnu-tools-for-stm32.10.3-2021.10.linux64_1.0.0.202111181127/tools/arm-none-eabi/include/malloc.h:136:13:__malloc_lock	32	static,ignoring_inline_asm
+/home/studio3s/st/stm32cubeide_1.8.0_2/plugins/com.st.stm32cube.ide.mcu.externaltools.gnu-tools-for-stm32.10.3-2021.10.linux64_1.0.0.202111181127/tools/arm-none-eabi/include/malloc.h:138:13:__malloc_unlock	16	static
+../Core/Module/ethernet/heap_useNewLib.c:222:6:__env_lock	8	static
+../Core/Module/ethernet/heap_useNewLib.c:223:6:__env_unlock	8	static
+../Core/Module/ethernet/heap_useNewLib.c:232:9:__wrap_malloc	24	static
+../Core/Module/ethernet/heap_useNewLib.c:241:9:__wrap__malloc_r	24	static
+../Core/Module/ethernet/heap_useNewLib.c:256:7:pvPortMalloc	24	static
+../Core/Module/ethernet/heap_useNewLib.c:260:6:vPortFree	16	static
+../Core/Module/ethernet/heap_useNewLib.c:264:8:xPortGetFreeHeapSize	48	static
+../Core/Module/ethernet/heap_useNewLib.c:273:6:vPortInitialiseBlocks	4	static
