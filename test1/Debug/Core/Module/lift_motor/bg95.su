@@ -29,18 +29,22 @@
 ../Core/Module/lift_motor/bg95.cpp:322:6:void BG95::HAL_CAN_DeInitialization()	16	static
 ../Core/Module/lift_motor/bg95.cpp:329:6:void BG95::DriveInit()	16	static
 ../Core/Module/lift_motor/bg95.cpp:336:6:void BG95::DriveComm()	16	static
-../Core/Module/lift_motor/bg95.cpp:365:6:void BG95::DriveAnalysis()	16	static
-../Core/Module/lift_motor/bg95.cpp:377:6:void BG95::Initialization()	16	static
-../Core/Module/lift_motor/bg95.cpp:385:6:void BG95::DeInitialization()	16	static
-../Core/Module/lift_motor/bg95.cpp:394:6:void BG95::Drive()	16	static
-../Core/Module/lift_motor/bg95.cpp:404:16:const uint32_t BG95::GetMotorVoltage()	16	static
-../Core/Module/lift_motor/bg95.cpp:405:15:const int32_t BG95::GetMotorCurrent()	16	static
-../Core/Module/lift_motor/bg95.cpp:406:15:const int32_t BG95::GetMotorPosition()	16	static
-../Core/Module/lift_motor/bg95.cpp:407:15:const int32_t BG95::GetMotorVelocity()	16	static
-../Core/Module/lift_motor/bg95.cpp:408:16:const uint32_t BG95::GetMotorAccelation()	16	static
-../Core/Module/lift_motor/bg95.cpp:409:16:const uint32_t BG95::GetMotorDeceleration()	16	static
-../Core/Module/lift_motor/bg95.cpp:411:16:const uint32_t BG95::GetMotorStatus()	16	static
-../Core/Module/lift_motor/bg95.cpp:412:16:const uint32_t BG95::GetMotorErrData()	16	static
+../Core/Module/lift_motor/bg95.cpp:359:6:void BG95::DriveAnalysis()	16	static
+../Core/Module/lift_motor/bg95.cpp:371:6:void BG95::Initialization()	16	static
+../Core/Module/lift_motor/bg95.cpp:379:6:void BG95::DeInitialization()	16	static
+../Core/Module/lift_motor/bg95.cpp:388:6:void BG95::Drive()	16	static
+../Core/Module/lift_motor/bg95.cpp:398:16:const uint32_t BG95::GetMotorVoltage()	16	static
+../Core/Module/lift_motor/bg95.cpp:399:15:const int32_t BG95::GetMotorCurrent()	16	static
+../Core/Module/lift_motor/bg95.cpp:400:15:const int32_t BG95::GetMotorPosition()	16	static
+../Core/Module/lift_motor/bg95.cpp:401:15:const int32_t BG95::GetMotorVelocity()	16	static
+../Core/Module/lift_motor/bg95.cpp:402:16:const uint32_t BG95::GetMotorAccelation()	16	static
+../Core/Module/lift_motor/bg95.cpp:403:16:const uint32_t BG95::GetMotorDeceleration()	16	static
+../Core/Module/lift_motor/bg95.cpp:405:16:const uint32_t BG95::GetMotorStatus()	16	static
+../Core/Module/lift_motor/bg95.cpp:406:16:const uint32_t BG95::GetMotorErrData()	16	static
+../Core/Module/lift_motor/bg95.cpp:409:12:const bool BG95::IsPowerUp()	16	static
+../Core/Module/lift_motor/bg95.cpp:410:12:const bool BG95::IsErrUp()	16	static
+../Core/Module/lift_motor/bg95.cpp:411:12:const bool BG95::IsMotorMoving()	16	static
+../Core/Module/lift_motor/bg95.cpp:412:12:const bool BG95::IsTargetPosReached()	16	static
 /home/studio3s/st/stm32cubeide_1.8.0_2/plugins/com.st.stm32cube.ide.mcu.externaltools.gnu-tools-for-stm32.10.3-2021.10.linux64_1.0.0.202111181127/tools/arm-none-eabi/include/c++/10.3.1/bits/stl_vector.h:131:2:std::_Vector_base<_Tp, _Alloc>::_Vector_impl::_Vector_impl() [with _Tp = CAN_WData_HandleTypeDef; _Alloc = std::allocator<CAN_WData_HandleTypeDef>]	16	static
 /home/studio3s/st/stm32cubeide_1.8.0_2/plugins/com.st.stm32cube.ide.mcu.externaltools.gnu-tools-for-stm32.10.3-2021.10.linux64_1.0.0.202111181127/tools/arm-none-eabi/include/c++/10.3.1/bits/allocator.h:182:7:std::allocator< <template-parameter-1-1> >::~allocator() [with _Tp = CAN_WData_HandleTypeDef]	16	static
 /home/studio3s/st/stm32cubeide_1.8.0_2/plugins/com.st.stm32cube.ide.mcu.externaltools.gnu-tools-for-stm32.10.3-2021.10.linux64_1.0.0.202111181127/tools/arm-none-eabi/include/c++/10.3.1/bits/stl_vector.h:333:7:std::_Vector_base<_Tp, _Alloc>::~_Vector_base() [with _Tp = CAN_WData_HandleTypeDef; _Alloc = std::allocator<CAN_WData_HandleTypeDef>]	16	static

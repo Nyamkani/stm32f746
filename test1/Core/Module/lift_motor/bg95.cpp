@@ -82,7 +82,7 @@ uint16_t BG95::TransmitReceiveResponse()
 	//state = HAL_CANReceive(hcanx_, &RxHeader, (unsigned char*)RxData);
 
 	/* Monitoring queue until at least one message is received */
-	if(HAL_CAN_GetRxFifoFillLevel(this->hcanx_, CAN_RX_FIFO0) == 0) return HAL_ERROR;
+	//if(HAL_CAN_GetRxFifoFillLevel(this->hcanx_, CAN_RX_FIFO0) == 0) return HAL_ERROR;
 	//while(HAL_CAN_GetRxFifoFillLevel(this->hcanx_, CAN_RX_FIFO0) != 1)
 
 	/* Configure Receive process */
@@ -335,17 +335,13 @@ void BG95::DriveInit()
 
 void BG95::DriveComm()
 {
-	//if(RequestQueue.empty()) return;
-
 	if(TransmitSendRequest()!=HAL_OK)
 	{
 		this->comm_status_ = false;
-		//return;
 	}
 	else
 	{
 		this->comm_status_ = true;
-		//return;
 	}
 
 	HAL_Delay(10);
@@ -353,12 +349,10 @@ void BG95::DriveComm()
 	if(TransmitReceiveResponse()!=HAL_OK)
 	{
 		this->comm_status_ = false;
-		//return;
 	}
 	else
 	{
 		this->comm_status_ = true;
-		//return;
 	}
 }
 
@@ -400,7 +394,7 @@ void BG95::Drive()
 	DriveAnalysis();
 }
 
-//Read functions
+//Read value functions
 const uint32_t BG95::GetMotorVoltage() {return this->motor_voltage_;}
 const int32_t BG95::GetMotorCurrent() {return this->motor_current_;}
 const int32_t BG95::GetMotorPosition() {return this->motor_pos_;}
@@ -410,5 +404,11 @@ const uint32_t BG95::GetMotorDeceleration() {return this->motor_dec_;}
 
 const uint32_t BG95::GetMotorStatus() {return this->stat_reg_;}
 const uint32_t BG95::GetMotorErrData() {return this->err_data_;}
+
+//read status functions
+const bool BG95::IsPowerUp() {return (this->stat_reg_&& 0x01);}
+const bool BG95::IsErrUp() {return (this->stat_reg_&& 0x02);}
+const bool BG95::IsMotorMoving() {return (this->stat_reg_&& 0x04);}
+const bool BG95::IsTargetPosReached() {return (this->stat_reg_&& 0x08);}
 
 

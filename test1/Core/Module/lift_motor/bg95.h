@@ -181,6 +181,13 @@ class BG95
 		const uint32_t GetMotorStatus();
 		const uint32_t GetMotorErrData();
 
+
+		//read status functions
+		const bool IsPowerUp();
+		const bool IsErrUp();
+		const bool IsMotorMoving();
+		const bool IsTargetPosReached();
+
 };
 
 #endif /* MODULE_LIFT_MOTOR_BG95_H_ */
