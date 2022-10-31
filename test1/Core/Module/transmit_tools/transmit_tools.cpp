@@ -10,22 +10,27 @@
 //these four-values must be in stm32f7xx_it.h or .c
 
 
-//----------------------------------------------------------------------------------------UART
+//----------------------------------------------------------------------------------------UART(No interrupt)
 int HAL_UsartTransmit(UART_HandleTypeDef* huartx, uint8_t* todata, int datalength)
 {
 	//return HAL_UART_Transmit_IT(huartx, todata, datalength);
+    /* Process Locked */
+     __HAL_LOCK(huartx);
+
 	return HAL_UART_Transmit(huartx, todata, datalength, 10);
 }
 
-int HAL_UsartReceive(UART_HandleTypeDef* huartx, uint8_t* fromdata, uint16_t datalength)
+int HAL_UsartReceive(UART_HandleTypeDef* huartx, uint8_t* fromdata, int datalength)
 {
 	//return HAL_UART_Receive_IT(huartx, fromdata, datalength);
+    /* Process Locked */
+     __HAL_LOCK(huartx);
+
 	return HAL_UART_Receive(huartx, fromdata, datalength, 10);
 }
 
 
-
-//----------------------------------------------------------------------------------------CANOpen
+//----------------------------------------------------------------------------------------CANOpen(No interrupt)
 int HAL_CANTransmit(CAN_HandleTypeDef* hcanx, const CAN_TxHeaderTypeDef *pHeader,
 					const uint8_t *aData, uint32_t *pTxMailbox)
 {
@@ -34,14 +39,17 @@ int HAL_CANTransmit(CAN_HandleTypeDef* hcanx, const CAN_TxHeaderTypeDef *pHeader
 
 int HAL_CANReceive(CAN_HandleTypeDef *hcanx, CAN_RxHeaderTypeDef *pHeader, uint8_t *aData)
 {
+	//while(HAL_CAN_GetRxFifoFillLevel(hcanx, CAN_RX_FIFO0 )!= HAL_OK)
 	return HAL_CAN_GetRxMessage(hcanx, CAN_RX_FIFO0, pHeader, aData);
 }
+
 
 
 void HAL_CAN_RxFifo0MsgPendingCallback(CAN_HandleTypeDef *CanHandle)
 {
 	CAN_RxHeaderTypeDef RxHeader;
 	uint8_t RxData[8] = {0,};
+
   /* Get RX message */
   if (HAL_CAN_GetRxMessage(CanHandle, CAN_RX_FIFO0, &RxHeader, RxData) != HAL_OK)
   {

@@ -25,7 +25,7 @@
 //common transmit functions
 //----------------------------------------------------------------------------------------UART
 int HAL_UsartTransmit(UART_HandleTypeDef* huartx, uint8_t* todata, int datalength);
-int HAL_UsartReceive(UART_HandleTypeDef* huartx, uint8_t* fromdata, uint16_t datalength);
+int HAL_UsartReceive(UART_HandleTypeDef* huartx, uint8_t* fromdata, int datalength);
 //void LLUsartTransmit(USART_TypeDef *USARTx, std::string data);
 //void LLUsartReceive(USART_TypeDef *USARTx);
 

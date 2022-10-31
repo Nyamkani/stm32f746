@@ -60,6 +60,11 @@ uint16_t pcverr = 0;
 uint16_t pcvtag = 0;
 bool errup = 0;
 
+//lift motor
+extern CAN_HandleTypeDef hcan1;
+BG95 bg95test(&hcan1);
+
+
 extern uint8_t str;
 /* USER CODE END PV */
 
@@ -113,7 +118,7 @@ int main(void)
 
   /* USER CODE BEGIN 2 */
 
-  init_stm32f746();
+ 	init_stm32f746();
 
 	Dprintf("Stm32f746 Initializing is complete!\n");
 
@@ -128,6 +133,8 @@ int main(void)
 	//need some times for boot pgv100
 	SensorManager::GetInstance().CommonSensorInitialize();
 	SensorManager::GetInstance().PGV100Initialize();
+
+	bg95test.Initialization();
 
 	Dprintf("Module Initializing is complete!\n");
   /* USER CODE END 2 */
@@ -263,6 +270,7 @@ void StartPGV100Task(void const *argument)
 	pcverr = SensorManager::GetInstance().PGV100GetErrData();
 	pcvtag = SensorManager::GetInstance().PGV100GetTagData();
 	errup = SensorManager::GetInstance().PGV100IsErrUp();
+
 	vTaskDelayUntil(&xLastWakeTime, xTime);
     osDelay(10);
 	//vTaskDelay(pdMS_TO_TICKS(80));
@@ -277,6 +285,9 @@ void StartPGV100Task(void const *argument)
 * @retval None
 */
 /* USER CODE END Header_StartETHTask */
+
+
+
 void StartETHTask(void const *argument)
 {
   /* USER CODE BEGIN StartETHTask */
@@ -286,14 +297,15 @@ void StartETHTask(void const *argument)
   for(;;)
   {
 	  	DebugDrive();
-
+	  	bg95test.Drive();
+/*
 		pgvxpos = SensorManager::GetInstance().PGV100GetXData();
 		pgvypos = SensorManager::GetInstance().PGV100GetYData();
 		pcvAngle = SensorManager::GetInstance().PGV100GetAngleData();
 		pcverr = SensorManager::GetInstance().PGV100GetErrData();
 		pcvtag = SensorManager::GetInstance().PGV100GetTagData();
 		errup = SensorManager::GetInstance().PGV100IsErrUp();
-
+*/
 		//vTaskDelayUntil(&xLastWakeTime, xTime);
 		//ethernetif_input(&gnetif);
 		//sys_check_timeouts();

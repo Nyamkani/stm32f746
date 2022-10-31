@@ -38,13 +38,16 @@ enum bg95_err_code
 typedef struct
 {
 	int txid_;
-	int rxid_;
 	int data_length_;
 	unsigned char write_Data_Byte_[8] = {0,};
+} CAN_WData_HandleTypeDef;
+
+typedef struct
+{
+	int rxid_;
+	int data_length_;
 	unsigned char read_Data_Byte_[8] = {0,};
-} CANData_HandleTypeDef;
-
-
+} CAN_RData_HandleTypeDef;
 
 
 
@@ -66,28 +69,40 @@ class BG95
 		bool comm_status_;
 
 		//-----------------------------------------------------------Dunkor params
-		//Dunkor can comm. default params.
-		uint16_t default_param_buff_[15]= {0};
+		//Dunkor can comm. Device Parameters.
 
 		//acc., dec. speed params
-		uint16_t max_rpm_;
-		uint16_t acc_rpm_ ;
-		uint16_t acc_time_;
-		uint16_t dec_rpm_ ;
-		uint16_t dec_time_;
+		uint16_t max_rpm_ = 1000;
+		uint16_t acc_rpm_ = 1000;
+		uint16_t acc_time_ = 1000;
+		uint16_t dec_rpm_ = 1000;
+		uint16_t dec_time_ = 1000;
+		uint16_t qdec_rpm_ = 2000;
+		uint16_t qdec_time_ = 2000;
 
 		//Read parameters
 		uint32_t motor_voltage_;	//mV
-		uint32_t motor_current_;	//mA
+		int32_t motor_current_;	//mA
 
-		uint32_t motor_pos_;
-		uint16_t motor_vel_;	//rpm
-		uint16_t motor_acc_;	//dV[rpm]
-		uint16_t motor_dec_;	//dV[rpm]
+		int32_t motor_pos_;	//present postiion
+		int32_t motor_vel_;	//rpm
+		uint32_t motor_acc_;	//dV[rpm]
+		uint32_t motor_dec_;	//dV[rpm]
+
+		//device status
+		uint32_t stat_reg_;
+		uint32_t err_data_;
+
+
+
+		//mode
 
 		//queue(vector)
-		std::vector<CANData_HandleTypeDef> RequestQueue;
-		std::vector<CANData_HandleTypeDef>::iterator it = RequestQueue.begin();
+		std::vector<CAN_WData_HandleTypeDef> AsyncRequestQueue;
+		std::vector<CAN_WData_HandleTypeDef> RequestQueue;
+
+		//Receive data
+		std::vector<CAN_RData_HandleTypeDef> ReceiveQueue;
 
 	//---------------------------------------------------------------------------------Fuctions
 	private:
@@ -99,32 +114,72 @@ class BG95
 		uint16_t TransmitReceiveResponse();
 
 		//queue system functions
-		void AsyncQueueSaveRequest(CANData_HandleTypeDef cmd);
-		void QueueSaveRequest(CANData_HandleTypeDef cmd);
+		void AsyncQueueSaveRequest(CAN_WData_HandleTypeDef cmd);
+		void QueueSaveRequest(CAN_WData_HandleTypeDef cmd);
 		void QueueDeleteRequest();
 
+		void QueueSaveReceive(CAN_RData_HandleTypeDef cmd);
+		void QueueDeleteReceive();
+
+
 		void WriteDataEnqueue(int index, int subindex, int data);
+		void AsyncWriteDataEnqueue(int index, int subindex, int data);
 		void ReadDataEnqueue(int index, int subindex, int data);
 
 		void HAL_CAN_Initialization();
 		void HAL_CAN_DeInitialization();
 		void DataBufferInit();
-		void DefaultParamInit();
 
 
 		void DriveInit();
 		void DriveComm();
 		void DriveAnalysis();
 
+		void DataAnalysis();
+		void DataProcess(int index, int subindex, int data);
+
+
 	public:
 		void Initialization();
 		void DeInitialization();
 		void Drive();
-		void TestEnque();
 
-		//test
-		void SetPositionCommand();
-		void ReadSchduleCommand();
+		//Enqueue
+	private:
+		void MandatoryParamEnqueue();
+		void RecommendationParamEnqueue();
+		void HardwareParamEnqueue();
+		void SetPositionControlEnqueue();
+		void SetVelocityControlEnqueue(bool dir);
+		void AbsPosCommandEnqueue(int *tPos);
+		void RelPosCommandEnqueue(int *tPos);
+
+		void ReadSchduleCommandEnqueue();
+
+
+	public:
+		//command function
+		void AbsPosCommand(int *tPos);
+		void RelPosCommand(int *tPos);
+		void VelClockCommand();
+		void VelCClockCommand();
+
+		void StopMotorCommand();
+
+		void testvelcommand();
+
+		void InitializeCommand();
+
+		//Read functions
+		const uint32_t GetMotorVoltage();
+		const int32_t GetMotorCurrent();
+		const int32_t GetMotorPosition();
+		const int32_t GetMotorVelocity();
+		const uint32_t GetMotorAccelation();
+		const uint32_t GetMotorDeceleration();
+
+		const uint32_t GetMotorStatus();
+		const uint32_t GetMotorErrData();
 
 };
 

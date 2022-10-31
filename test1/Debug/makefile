@@ -37,6 +37,7 @@ RM := rm -rf
 -include Core/Module/ethernet/tcp_rtos/subdir.mk
 -include Core/Module/ethernet/subdir.mk
 -include Core/Module/common_sensor/subdir.mk
+-include Core/Module/api_timer/subdir.mk
 -include Core/Module/api_debug/subdir.mk
 -include Core/Module/Util/phy_Lan8720/subdir.mk
 -include objects.mk

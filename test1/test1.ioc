@@ -1,10 +1,11 @@
 #MicroXplorer Configuration settings - do not modify
-CAN1.BS1=CAN_BS1_5TQ
-CAN1.BS2=CAN_BS2_8TQ
-CAN1.CalculateBaudRate=241071
-CAN1.CalculateTimeBit=4148
-CAN1.CalculateTimeQuantum=296.2962962962963
-CAN1.IPParameters=CalculateTimeQuantum,CalculateTimeBit,CalculateBaudRate,BS1,BS2
+CAN1.BS1=CAN_BS1_4TQ
+CAN1.BS2=CAN_BS2_7TQ
+CAN1.CalculateBaudRate=562500
+CAN1.CalculateTimeBit=1777
+CAN1.CalculateTimeQuantum=148.14814814814815
+CAN1.IPParameters=CalculateTimeQuantum,CalculateTimeBit,CalculateBaudRate,BS1,BS2,Prescaler
+CAN1.Prescaler=8
 CORTEX_M7.AccessPermission-Cortex_Memory_Protection_Unit_Region1_Settings=MPU_REGION_FULL_ACCESS
 CORTEX_M7.AccessPermission-Cortex_Memory_Protection_Unit_Region2_Settings=MPU_REGION_FULL_ACCESS
 CORTEX_M7.BaseAddress-Cortex_Memory_Protection_Unit_Region0_Settings=0x90000000
@@ -634,4 +635,4 @@ VP_SYS_VS_tim6.Signal=SYS_VS_tim6
 VP_TIM7_VS_ClockSourceINT.Mode=Enable_Timer
 VP_TIM7_VS_ClockSourceINT.Signal=TIM7_VS_ClockSourceINT
 board=custom
-isbadioc=false
+isbadioc=true

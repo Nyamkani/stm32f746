@@ -120,14 +120,16 @@ void SystemClock_Config(void)
 void MX_CAN1_Init(void){
 
   hcan1.Instance = CAN1;
+
   //125 ~ 500khz
-  //hcan1.Init.Prescaler = 9;//500khz
-  hcan1.Init.Prescaler = 18;//250khz
-  //hcan1.Init.Prescaler = 36;//125khz
+  //hcan1.Init.Prescaler = 3;//1000khz -> 3, 15, 2
+  //hcan1.Init.Prescaler = 6;//500khz -> 6, 15, 2
+  hcan1.Init.Prescaler = 12;//250khz -> 12, 15, 2
+  //hcan1.Init.Prescaler = 27;//125khz -> 27,16,13
   hcan1.Init.Mode = CAN_MODE_NORMAL;
   hcan1.Init.SyncJumpWidth = CAN_SJW_1TQ;
-  hcan1.Init.TimeSeg1 = CAN_BS1_4TQ;
-  hcan1.Init.TimeSeg2 = CAN_BS2_7TQ;
+  hcan1.Init.TimeSeg1 = CAN_BS1_15TQ;
+  hcan1.Init.TimeSeg2 = CAN_BS2_2TQ;
 
 /*
   hcan1.Init.Prescaler = 6;//1Mhz
@@ -136,6 +138,7 @@ void MX_CAN1_Init(void){
   hcan1.Init.TimeSeg1 = CAN_BS1_2TQ;
   hcan1.Init.TimeSeg2 = CAN_BS2_6TQ;
 */
+
   hcan1.Init.TimeTriggeredMode = DISABLE;
   hcan1.Init.AutoBusOff = DISABLE;
   hcan1.Init.AutoWakeUp = DISABLE;
@@ -147,21 +150,22 @@ void MX_CAN1_Init(void){
     Error_Handler();
   }
 
+
   sFilterConfig.FilterBank = 0;
   sFilterConfig.FilterMode = CAN_FILTERMODE_IDMASK;
   sFilterConfig.FilterScale = CAN_FILTERSCALE_32BIT;
-  sFilterConfig.FilterIdHigh = 0x0000;
-  sFilterConfig.FilterIdLow = 0x0000;
+  sFilterConfig.FilterIdHigh = 0x1fff;
+  sFilterConfig.FilterIdLow = 0xffff;
   sFilterConfig.FilterMaskIdHigh = 0x0000;             //maximum range of accepting id
   sFilterConfig.FilterMaskIdLow = 0x0000;				//minimum range of accepting id
   sFilterConfig.FilterFIFOAssignment = CAN_RX_FIFO0;
   sFilterConfig.FilterActivation = ENABLE;
-  sFilterConfig.SlaveStartFilterBank = 14;
+  sFilterConfig.SlaveStartFilterBank = 14;   //14
 
 
   if (HAL_CAN_ConfigFilter(&hcan1, &sFilterConfig) != HAL_OK)
   {
-    /* Filter configuration Error */
+    /*Filter configuration Error*/
     Error_Handler();
   }
 

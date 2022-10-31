@@ -5,8 +5,8 @@
  *      Author: studio3s
  */
 
-#ifndef MODULE_LIFT_MOTOR_BG95_CANCMD_H_
-#define MODULE_LIFT_MOTOR_BG95_CANCMD_H_
+#ifndef MODULE_LIFT_MOTOR_BG95_DEFINE_H_
+#define MODULE_LIFT_MOTOR_BG95_DEFINE_H_
 
 
 //--------------------------------------------3000
@@ -14,4 +14,13 @@
 
 
 
-#endif /* MODULE_LIFT_MOTOR_BG95_CANCMD_H_ */
+
+
+
+
+
+
+
+
+
+#endif /* MODULE_LIFT_MOTOR_BG95_DEFINE_H_ */

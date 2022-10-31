@@ -33,6 +33,7 @@ CPP_DEPS :=
 SUBDIRS := \
 Core/Module/Util/phy_Lan8720 \
 Core/Module/api_debug \
+Core/Module/api_timer \
 Core/Module/common_sensor \
 Core/Module/ethernet \
 Core/Module/ethernet/tcp_rtos \

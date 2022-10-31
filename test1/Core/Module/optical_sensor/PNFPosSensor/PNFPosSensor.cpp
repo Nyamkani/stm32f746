@@ -21,9 +21,17 @@ uint16_t PNFPosSensor::TransmitSendRequest()
 	unsigned char temp_data_rev = ~temp_data_;
 	unsigned char address_data[3]= {temp_data_, temp_data_rev, 0x00};
 
-	if(this->comm_dir_available_ == true) HAL_GPIO_WritePin(this->GPIO_, (uint16_t)this->dir_pin_no_, GPIO_PIN_SET);
+	/*If uart direction is available*/
+	if(this->comm_dir_available_ == true) HAL_GPIO_WritePin(this->GPIO_, this->dir_pin_no_, GPIO_PIN_SET);
 
-	return HAL_UsartTransmit(this->huartx_, address_data, (sizeof(address_data)/sizeof(address_data[0])));
+	if (HAL_UsartTransmit(this->huartx_, address_data, (sizeof(address_data)/sizeof(address_data[0]))) == HAL_OK)
+	{
+		return HAL_OK;
+	}
+	else
+	{
+		return HAL_TIMEOUT;
+	}
 }
 
 
@@ -31,7 +39,8 @@ uint16_t PNFPosSensor::TransmitReceiveResponse()
 {
 	unsigned char tempdata[this->max_read_buf_size_] = {0,};
 
-	if(this->comm_dir_available_ == true) HAL_GPIO_WritePin(this->GPIO_, (uint16_t)this->dir_pin_no_, GPIO_PIN_RESET);
+	/*If uart direction is available*/
+	if(this->comm_dir_available_ == true) HAL_GPIO_WritePin(this->GPIO_, this->dir_pin_no_, GPIO_PIN_RESET);
 
 	if(HAL_UsartReceive(this->huartx_, tempdata, this->max_read_buf_size_) == HAL_OK)
 	{

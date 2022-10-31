@@ -1,0 +1,4 @@
+../Core/Module/api_timer/apitimer.cpp:10:1:api_timer::api_timer()	16	static
+../Core/Module/api_timer/apitimer.cpp:15:1:api_timer::~api_timer()	16	static
+../Core/Module/api_timer/apitimer.cpp:15:1:virtual api_timer::~api_timer()	16	static
+../Core/Module/api_timer/apitimer.cpp:22:6:void api_timer::UpdateTime()	24	static

@@ -5,8 +5,6 @@
  *      Author: studio3s
  */
 
-
-
 #include "../api_debug/api_debug.h"
 
 #include <stdio.h>
@@ -77,8 +75,10 @@ extern CAN_HandleTypeDef hcan1;
 
 /* USER CODE END PV */
 extern char char_ethernet;
-BG95 bg95test(&hcan1);
+extern BG95 bg95test;
 
+
+int testpos= 100000;
 
 //for uart1 debug
 void DebugDrive()
@@ -88,23 +88,24 @@ void DebugDrive()
 	int cmd2 = str3_;
 	int cmd3 = char_ethernet;
 
-
-
 	if (cmd1 != 0) cmd = cmd1;
 	else if (cmd2 !=0) cmd = cmd2;
 	else if (cmd3 !=0) cmd = cmd3;
 
 	switch(cmd)
 	{
-		case '1': SensorManager::GetInstance().PGV100DirStraight(); /*function 1*/ break;
-		case '2': SensorManager::GetInstance().PGV100DirLeft();/*function 2*/ break;
-		case '3': SensorManager::GetInstance().PGV100DirRight();/*function 2*/ break;
-		case '4': SensorManager::GetInstance().PGV100Drive(); break;
-		case '5': SensorManager::GetInstance().CommonSensorDrive(); break;
+		//case '1': SensorManager::GetInstance().PGV100DirStraight(); /*function 1*/ break;
+		//case '2': SensorManager::GetInstance().PGV100DirLeft();/*function 2*/ break;
+		//case '3': SensorManager::GetInstance().PGV100DirRight();/*function 2*/ break;
+		//case '4': SensorManager::GetInstance().PGV100Drive(); break;
+		//case '5': SensorManager::GetInstance().CommonSensorDrive(); break;
 		//can test
-		case '6': bg95test.Initialization(); break;
-		case '7': bg95test.SetPositionCommand(); break;
-		case '8': bg95test.Drive(); break;
+		case '1': bg95test.AbsPosCommand(&testpos); break;
+		case '2': bg95test.RelPosCommand(&testpos); break;
+		case '3': bg95test.VelClockCommand(); break;
+		case '4': bg95test.VelCClockCommand(); break;
+		//case '9': bg95test.Drive(); break;
+		case '9': bg95test.StopMotorCommand(); break;
 
 		default: break;
 	}
@@ -113,127 +114,3 @@ void DebugDrive()
 	memset(&char_ethernet, '\0', sizeof(char_ethernet));
 }
 
-//for Bluetooth uart3 debug
-void BTDebugDrive()
-{
-	int cmd = str3_;
-	switch(cmd)
-	{
-		case 'a': SensorManager::GetInstance().PGV100DirStraight(); /*function 1*/ break;
-		case 'b': SensorManager::GetInstance().PGV100DirLeft();/*function 2*/ break;
-		case 'c': SensorManager::GetInstance().PGV100DirRight();/*function 2*/ break;
-		default: break;
-	}
-}
-
-
-
-
-
-
-
-
-
-
-/*
-double pgvxpos;
-double pgvypos;
-double pgvangle;
-uint16_t pgvtag;
-uint16_t errinfo;
-
-uint16_t sensorsval;
-bool sensor1val;
-
-double pcvxpos;
-double pcvypos;
-*/
-
-
-/*
-double pgvxpos;
-double pgvypos;
-double pgvangle;
-uint16_t pgvtag;
-uint16_t errinfo;
-
-
-bool sensor1val;
-
-double pcvxpos;
-double pcvypos;
-
-double pcvAngle;
-uint16_t pcverr;
-uint16_t pcvtag;
-bool errup;
-*/
-
-
-void debug_Command()
-{
-	/*
-	str = str - 48;
-	switch(str)
-	{
-		case 1: SensorManager::GetInstance().PGV100DirStraight(); break;
-		case 2: SensorManager::GetInstance().PGV100DirLeft(); break;
-		case 3: SensorManager::GetInstance().PGV100DirRight(); break;
-		case 4:
-			SensorManager::GetInstance().PGV100Drive();
-
-			pgvxpos = SensorManager::GetInstance().PGV100GetXData(0);
-			pgvypos = SensorManager::GetInstance().PGV100GetYData(0);
-			pcvAngle = SensorManager::GetInstance().PGV100GetAngleData(0);
-			pcverr = SensorManager::GetInstance().PGV100GetErrData(0);
-			pcvtag = SensorManager::GetInstance().PGV100GetTagData(0);
-			errup = SensorManager::GetInstance().PGV100IsErrUp(0);
-			break;
-*/
-	//}
-	//str = 0x00;
-
-
-	//SensorManager::GetInstance().PGV100Register();
-	//SensorManager::GetInstance().CommonSensorRegister();
-	//auto testmodbus = new HALModbusRtu(&huart1);
-
-	//auto pgv100 = new PNFPosSensor(PCV80, RS485, Port5, GPIOB, GPIO_PIN_0, meter_1, 0.0, 0.0, 0.0);
-	//auto sensor1 = new CommonSensor(WORG_R, ActiveH, Filter_5, GPIOG, GPIO_PIN_9);
-	//auto pcv80 = new PNFPosSensor(PCV80, RS485, Port5, 0.0, 0.0, 0.0);
-	//pgv100->Initializaition();
-	//pcv80->Initializaition();
-
-	/*
-	SensorManager::GetInstance().PGV100Initialize();
-	while(1)
-	{
-		//pgv100->Drive();
-		//pcv80->Drive();
-		//pgvxpos = pgv100->GetXPos();
-		//pgvypos = pgv100->GetYPos();
-		//pgvangle = pgv100->GetAngle();
-		//pgvtag = pgv100->GetTagNo();
-		//errinfo = pgv100->GetSensorErr();
-
-		//modbus test
-		//char tempdata[] = {0x02, 0x05,0x03, 0x08, 0x10};
-		//testmodbus->HALModbusRtuMultiRequest(01, 10, tempdata, (sizeof(tempdata)/sizeof(char)));
-
-		//sensor1->Drive();
-		//sensor1val = sensor1->GetSensorData();
-		//pcvxpos = pcv80->GetXPos();
-		//pcvypos= pcv80->GetYPos();
-
-		SensorManager::GetInstance().CommonSensorDrive();
-		SensorManager::GetInstance().PGV100Drive();
-
-		//sensorsval = SensorManager::GetInstance().CommonSensorGetAllData();
-		//pgvxpos = SensorManager::GetInstance().PNFPosSensorGetXData(0);
-		//pgvypos = SensorManager::GetInstance().PNFPosSensorGetYData(0);
-
-		HAL_Delay(10);
-
-	}
-	*/
-}

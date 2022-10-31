@@ -1,0 +1,17 @@
+/home/studio3s/st/stm32cubeide_1.8.0_2/plugins/com.st.stm32cube.ide.mcu.externaltools.gnu-tools-for-stm32.10.3-2021.10.linux64_1.0.0.202111181127/tools/arm-none-eabi/include/c++/10.3.1/arm-none-eabi/thumb/v7e-m+fp/hard/bits/gthr-default.h:229:1:int __gthread_key_delete(__gthread_key_t)	16	static
+/home/studio3s/st/STM32CubeIDE/workspace_1.9.0/test1/Core/Module/transmit_tools/../../Module/Util/CalcCRC.h:65:16:short unsigned int CalcCRC(unsigned char*, long unsigned int)	24	static
+../Core/Module/lift_motor/bg95_command.cpp:24:6:void BG95::MandatoryParamEnqueue()	16	static
+../Core/Module/lift_motor/bg95_command.cpp:64:6:void BG95::RecommendationParamEnqueue()	32	static
+../Core/Module/lift_motor/bg95_command.cpp:93:6:void BG95::HardwareParamEnqueue()	16	static
+../Core/Module/lift_motor/bg95_command.cpp:128:6:void BG95::SetPositionControlEnqueue()	24	static
+../Core/Module/lift_motor/bg95_command.cpp:143:6:void BG95::AbsPosCommandEnqueue(int*)	24	static
+../Core/Module/lift_motor/bg95_command.cpp:154:6:void BG95::RelPosCommandEnqueue(int*)	24	static
+../Core/Module/lift_motor/bg95_command.cpp:166:6:void BG95::SetVelocityControlEnqueue(bool)	24	static
+../Core/Module/lift_motor/bg95_command.cpp:184:6:void BG95::ReadSchduleCommandEnqueue()	16	static
+../Core/Module/lift_motor/bg95_command.cpp:211:6:void BG95::InitializeCommand()	16	static
+../Core/Module/lift_motor/bg95_command.cpp:218:6:void BG95::AbsPosCommand(int*)	16	static
+../Core/Module/lift_motor/bg95_command.cpp:226:6:void BG95::RelPosCommand(int*)	16	static
+../Core/Module/lift_motor/bg95_command.cpp:233:6:void BG95::VelClockCommand()	16	static
+../Core/Module/lift_motor/bg95_command.cpp:238:6:void BG95::VelCClockCommand()	16	static
+../Core/Module/lift_motor/bg95_command.cpp:245:6:void BG95::testvelcommand()	16	static
+../Core/Module/lift_motor/bg95_command.cpp:258:6:void BG95::StopMotorCommand()	16	static
