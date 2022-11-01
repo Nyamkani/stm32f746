@@ -72,15 +72,15 @@ class BG95
 		//Dunkor can comm. Device Parameters.
 
 		//acc., dec. speed params
-		uint16_t max_rpm_ = 1000;
-		uint16_t acc_rpm_ = 1000;
-		uint16_t acc_time_ = 1000;
-		uint16_t dec_rpm_ = 1000;
-		uint16_t dec_time_ = 1000;
-		uint16_t qdec_rpm_ = 2000;
-		uint16_t qdec_time_ = 2000;
+		int32_t max_vel_ = 1000;
+		uint32_t acc_rpm_ = 1000;
+		uint32_t acc_time_ = 1000;
+		uint32_t dec_rpm_ = 1000;
+		uint32_t dec_time_ = 1000;
+		uint32_t qdec_rpm_ = 2000;
+		uint32_t qdec_time_ = 2000;
 
-		//Read parameters
+		//Only Read parameters
 		uint32_t motor_voltage_;	//mV
 		int32_t motor_current_;	//mA
 
@@ -89,6 +89,7 @@ class BG95
 		uint32_t motor_acc_;	//dV[rpm]
 		uint32_t motor_dec_;	//dV[rpm]
 
+
 		//device status
 		uint32_t stat_reg_;
 		uint32_t err_data_;
@@ -96,6 +97,7 @@ class BG95
 
 
 		//mode
+		bool motor_dir_ = false;   //only available for pos mode
 
 		//queue(vector)
 		std::vector<CAN_WData_HandleTypeDef> AsyncRequestQueue;
@@ -149,6 +151,7 @@ class BG95
 		void MandatoryParamEnqueue();
 		void RecommendationParamEnqueue();
 		void HardwareParamEnqueue();
+		void BreakManagementEnqueue();
 		void SetPositionControlEnqueue();
 		void SetVelocityControlEnqueue(bool dir);
 		void AbsPosCommandEnqueue(int *tPos);
@@ -165,10 +168,12 @@ class BG95
 		void VelCClockCommand();
 
 		void StopMotorCommand();
-
-		void testvelcommand();
+		void EMGStopMotorCommand();
 
 		void InitializeCommand();
+
+		void ClearParamCommand();
+
 
 		//Read functions
 		const uint32_t GetMotorVoltage();
@@ -180,6 +185,14 @@ class BG95
 
 		const uint32_t GetMotorStatus();
 		const uint32_t GetMotorErrData();
+
+		void SetMaxVelocityCommand(int32_t vel);
+		void SetAccelerationCommand(uint32_t aec);
+		void SetDecelerationCommand(uint32_t dec);
+		void SetQuickStopDecelerationCommand(uint32_t qdec);
+		BG95& SetMotorDirectionCommand();
+
+
 
 
 		//read status functions

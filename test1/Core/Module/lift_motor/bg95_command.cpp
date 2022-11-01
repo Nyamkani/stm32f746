@@ -43,7 +43,7 @@ void BG95::MandatoryParamEnqueue()
 	WriteDataEnqueue(0x3224, 2, 2640);      // Dynamic Current Limit I*t - Continuous Current [mA]
 	WriteDataEnqueue(0x3224, 3, 1000);      // Dynamic Current Limit I*t - Time [ms]
 
-	// c.) Controller parameters (recommendations):
+	// c.) Controller parameters
 	WriteDataEnqueue(0x3310, 0, 500);      // PID-Position Controller - Proportional gain
 	WriteDataEnqueue(0x3312, 0, 1);      // PID-Position Controller - Differential gain
 
@@ -64,25 +64,24 @@ void BG95::MandatoryParamEnqueue()
 void BG95::RecommendationParamEnqueue()
 {
 	//----------------------------2.) Recommendation parameters:
-	const uint16_t max_rpm = this->max_rpm_;
-	const uint16_t acc_rpm_ = this->acc_rpm_;
-	const uint16_t acc_time_ = this->acc_time_;
-	const uint16_t dec_rpm_ = this->dec_rpm_;
-	const uint16_t dec_time_= this->dec_time_;
-	const uint16_t qdec_rpm = this->qdec_rpm_;
-	const uint16_t qdec_time = this->qdec_time_;
+	const int32_t max_vel = this->max_vel_;
+	const uint32_t acc_rpm = this->acc_rpm_;
+	const uint32_t acc_time = this->acc_time_;
+	const uint32_t dec_rpm = this->dec_rpm_;
+	const uint32_t dec_time = this->dec_time_;
+	const uint32_t qdec_rpm = this->qdec_rpm_;
+	const uint32_t qdec_time = this->qdec_time_;
 
-	WriteDataEnqueue(0x3300, 0, max_rpm);      // Velocity - rpm
+	WriteDataEnqueue(0x3300, 0, max_vel);      // Velocity - rpm
 
-	WriteDataEnqueue(0x3321, 0, max_rpm);      // Velocity Max. Limit - Positive Direction - rpm
-	WriteDataEnqueue(0x3323, 0, max_rpm);      // Velocity Max. Limit - Negative Direction - rpm
+	WriteDataEnqueue(0x3321, 0, max_vel);      // Velocity Max. Limit - Positive Direction - rpm
+	WriteDataEnqueue(0x3323, 0, max_vel);      // Velocity Max. Limit - Negative Direction - rpm
 
-	WriteDataEnqueue(0x3340, 0, acc_rpm_);      // Velocity Acceleration - Delta v
-	WriteDataEnqueue(0x3341, 0, acc_time_);      // Velocity Acceleration - Delta t
+	WriteDataEnqueue(0x3340, 0, acc_rpm);      // Velocity Acceleration - Delta v
+	WriteDataEnqueue(0x3341, 0, acc_time);      // Velocity Acceleration - Delta t
 
-	WriteDataEnqueue(0x3342, 0, dec_rpm_);      // Velocity Deceleration - Delta v
-	WriteDataEnqueue(0x3343, 0, dec_time_);      // Velocity Deceleration - Delta t
-
+	WriteDataEnqueue(0x3342, 0, dec_rpm);      // Velocity Deceleration - Delta v
+	WriteDataEnqueue(0x3343, 0, dec_time);      // Velocity Deceleration - Delta t
 
 	WriteDataEnqueue(0x3344, 0, qdec_rpm);      // Velocity Deceleration - Quick-Stop - Delta v
 	WriteDataEnqueue(0x3345, 0, qdec_time);      // Velocity Deceleration - Quick-Stop - Delta t
@@ -93,47 +92,53 @@ void BG95::RecommendationParamEnqueue()
 void BG95::HardwareParamEnqueue()
 {
 
-	/*Break management config.*/
-	//WriteDataEnqueue(0x3154, 0, 2);      // Brake Management - Enable Digital Outputs
-
-	//WriteDataEnqueue(0x39a0, 0, 1);      // Brake Management - Configuration - auto disable when the movoment ends
-
-	//WriteDataEnqueue(0x39a0, 24, 5);      // Brake Management - Activating Condition
-	//WriteDataEnqueue(0x39a0, 26, 4);      // Brake Management - Deactivating Condition
-	//WriteDataEnqueue(0x39a0, 8, 353);      // Brake Management - Brake Output
-
-	//WriteDataEnqueue(0x39a0, 16, 1000);      // Brake Management - Brake Output
-	//WriteDataEnqueue(0x39a0, 17, 1000);      // Brake Management - Brake Output
-	//WriteDataEnqueue(0x39a0, 18, 1000);      // Brake Management - Brake Output
-	//WriteDataEnqueue(0x39a0, 19, 1000);      // Brake Management - Brake Output
-
-	/*Manual oepn break*/
-	WriteDataEnqueue(0x3150, 0, 2);      // Open Break
-
-
-
-
 	//save all config.
 	WriteDataEnqueue(0x3000, 0, 128);      // Stores actual parameters
 	WriteDataEnqueue(0x3000, 0, 5);      // save actual parameters
 
 	//final approach
-	WriteDataEnqueue(0x3732, 0, 1000);   // position following error - window
+	//WriteDataEnqueue(0x3732, 0, 1000);   // position following error - window
 	WriteDataEnqueue(0x3762, 0, 0);   // reset actual position
 	WriteDataEnqueue(0x3000, 0, 1);      // reset error register
 
 }
 
+
+void BG95::BreakManagementEnqueue()
+{
+	/*Manual oepn break*/
+	WriteDataEnqueue(0x3150, 0, 2);      // Open Break
+
+	/*Break management config.*/
+	//WriteDataEnqueue(0x39a0, 0, 3);      // Brake Management - Configuration - auto disable when the movoment ends
+
+	//WriteDataEnqueue(0x39a0, 24, 5);      // Brake Management - Activating Condition
+	//WriteDataEnqueue(0x39a0, 26, 5);      // Brake Management - Deactivating Condition
+	//WriteDataEnqueue(0x39a0, 8, 353);      // Brake Management - Brake Output(Digital output 1 High-active)
+
+	//WriteDataEnqueue(0x39a0, 16, 200);      // Brake Management - Brake Output
+	//WriteDataEnqueue(0x39a0, 17, 200);      // Brake Management - Brake Output
+	//WriteDataEnqueue(0x39a0, 18, 200);      // Brake Management - Brake Output
+	//WriteDataEnqueue(0x39a0, 19, 200);      // Brake Management - Brake Output
+
+	//WriteDataEnqueue(0x3000, 0, 128);      // Stores actual parameters
+}
+
+
+
 /*for move mode*/
 void BG95::SetPositionControlEnqueue()
 {
-	int vel_ = this->max_rpm_;
+	int vel_ = this->max_vel_;
 
 	AsyncWriteDataEnqueue(0x3004, 0, 0);      // Power Disable
 
 	AsyncWriteDataEnqueue(0x3000, 0, 1);      // reset error register
+
 	AsyncWriteDataEnqueue(0x3003, 0, 7);      // device mode "position mode"
+
 	AsyncWriteDataEnqueue(0x3300, 0, vel_);   // desired velocity (max_rpm)
+
 	AsyncWriteDataEnqueue(0x3000, 0, 4);      // continue
 
 	AsyncWriteDataEnqueue(0x3004, 0, 1);      // Power Enable
@@ -143,7 +148,9 @@ void BG95::SetPositionControlEnqueue()
 void BG95::AbsPosCommandEnqueue(int *tPos)
 {
 	int tPos_ = 0;
+
 	if(tPos != NULL) tPos_ = *tPos;
+	if(this->motor_dir_) tPos_ *= (-1);
 
 	AsyncWriteDataEnqueue(0x3000, 0, 1);      // reset error register
 
@@ -154,8 +161,10 @@ void BG95::AbsPosCommandEnqueue(int *tPos)
 void BG95::RelPosCommandEnqueue(int *tPos)
 {
 	int tPos_ = 0;
-	if(tPos != NULL) tPos_ = *tPos;
 
+	if(tPos != NULL) tPos_ = *tPos;
+	if(this->motor_dir_) tPos_ *= (-1)
+			;
 	AsyncWriteDataEnqueue(0x3000, 0, 1);      // reset error register
 
 	AsyncWriteDataEnqueue(0x3791, 0, tPos_);   // target position
@@ -166,15 +175,18 @@ void BG95::RelPosCommandEnqueue(int *tPos)
 void BG95::SetVelocityControlEnqueue(bool dir)
 {
 	bool dir_ = dir;
-	int vel_ = this->max_rpm_/5;
+	int vel_ = this->max_vel_/5;
 
 	if(!dir_) vel_ = vel_*(-1);
 
 	AsyncWriteDataEnqueue(0x3004, 0, 0);      // Power Disable
 
 	AsyncWriteDataEnqueue(0x3000, 0, 1);      // reset error register
+
 	AsyncWriteDataEnqueue(0x3003, 0, 3);      // device mode "velocity mode"
+
 	AsyncWriteDataEnqueue(0x3300, 0, vel_);   // desired velocity (2500 rpm)
+
 	AsyncWriteDataEnqueue(0x3000, 0, 4);      // continue
 
 	AsyncWriteDataEnqueue(0x3004, 0, 1);      // Power Enable
@@ -186,21 +198,32 @@ void BG95::ReadSchduleCommandEnqueue()
 	//hardware param
 	//ReadDataEnqueue(0x3110, 0, 0);      // actual power voltage
 	ReadDataEnqueue(0x3111, 0, 0);      // actual motor voltage
+
 	ReadDataEnqueue(0x3113, 0, 0);      // actual motor current
 	//ReadDataEnqueue(0x3760, 0, 0);      // Actual Target Position
 	//ReadDataEnqueue(0x3761, 0, 0);      // Actual Command Position
 
 	//motor pos.
-	//ReadDataEnqueue(0x3762, 0, 0);      // Actual Position(
-	ReadDataEnqueue(0x396a, 0, 0);      // Actual Position(
+	ReadDataEnqueue(0x3762, 0, 0);      // Actual Position(
 
 	//motor dynamics
-	ReadDataEnqueue(0x3a04, 1, 0);      // velocity(rpm)
-	ReadDataEnqueue(0x3340, 0, 0);      // Acceleration(dV)
-	ReadDataEnqueue(0x3342, 0, 0);      // Deceleration(dV)
+	ReadDataEnqueue(0x3a04, 1, 0);      // Currently velocity(rpm)
+
+	//setting parameters
+	ReadDataEnqueue(0x3300, 0, 0);      // Velocity - rpm
+
+	ReadDataEnqueue(0x3340, 0, 0);      // Velocity Acceleration - Delta v
+	ReadDataEnqueue(0x3341, 0, 0);      // Velocity Acceleration - Delta t
+
+	ReadDataEnqueue(0x3342, 0, 0);      // Velocity Deceleration - Delta v
+	ReadDataEnqueue(0x3343, 0, 0);      // Velocity Deceleration - Delta t
+
+	ReadDataEnqueue(0x3344, 0, 0);      // Velocity Deceleration - Quick-Stop - Delta v
+	ReadDataEnqueue(0x3345, 0, 0);      // Velocity Deceleration - Quick-Stop - Delta t
 
 	//check Device status
 	ReadDataEnqueue(0x3001, 0, 0);      //error status
+
 	ReadDataEnqueue(0x3002, 0, 0);      //status register
 }
 
@@ -212,7 +235,9 @@ void BG95::InitializeCommand()
 {
 	MandatoryParamEnqueue();
 	RecommendationParamEnqueue();
+	BreakManagementEnqueue();
 	HardwareParamEnqueue();
+
 }
 
 void BG95::AbsPosCommand(int *tPos)
@@ -242,25 +267,25 @@ void BG95::VelCClockCommand()
 
 
 
-void BG95::testvelcommand()
+void BG95::ClearParamCommand()
 {
-	WriteDataEnqueue(0x3000, 0, 4);      // continue
-	WriteDataEnqueue(0x3000, 0, 1);      // reset error register
-	WriteDataEnqueue(0x3003, 0, 3);      // device mode "vel mode"
-	WriteDataEnqueue(0x3000, 0, 4);      // continue
-	WriteDataEnqueue(0x3300, 0, 150);   // desired velocity (2500 rpm)
+	WriteDataEnqueue(0x3000, 0, 131);
 }
-
-
 
 
 
 void BG95::StopMotorCommand()
 {
-	//WriteDataEnqueue(0x3000, 0, 2);      // quick stop
+	AsyncWriteDataEnqueue(0x3000, 0, 3);      // halt
 	WriteDataEnqueue(0x3000, 0, 3);      // halt
 }
 
+
+void BG95::EMGStopMotorCommand()
+{
+	AsyncWriteDataEnqueue(0x3000, 0, 2);      // quick stop
+	WriteDataEnqueue(0x3000, 0, 2);      // quick stop
+}
 
 
 
@@ -277,6 +302,63 @@ void BG95::StopMotorCommand()
 	print "ActPosFollowingError_cnt =", mc.Can.SdoRd(NodeId, 0x3773, 0)
 	print "ActIndexPos_cnt          =", mc.Can.SdoRd(NodeId, 0x3774, 0)
 	*/
+
+
+//write value functions
+void BG95::SetMaxVelocityCommand(int32_t vel)
+{
+	int32_t vel_ = vel;
+
+	WriteDataEnqueue(0x3300, 0, vel_);		//velocity
+
+	WriteDataEnqueue(0x3321, 0, vel_);      // Velocity Max. Limit - Positive Direction - rpm
+
+	WriteDataEnqueue(0x3323, 0, vel_);      // Velocity Max. Limit - Negative Direction - rpm
+
+	WriteDataEnqueue(0x3000, 0, 5);     	//Updates set values
+}
+
+void BG95::SetAccelerationCommand(uint32_t acc)
+{
+
+	uint32_t acc_ = acc;
+
+	WriteDataEnqueue(0x3340, 0, acc_);      // Velocity Acceleration - Delta v
+
+	WriteDataEnqueue(0x3341, 0, acc_);      // Velocity Acceleration - Delta t
+
+	WriteDataEnqueue(0x3000, 0, 5);     	//Updates set values
+}
+
+
+void BG95::SetDecelerationCommand(uint32_t dec)
+{
+	uint32_t dec_ = dec;
+
+	WriteDataEnqueue(0x3342, 0, dec_);      // Velocity Deceleration - Delta v
+
+	WriteDataEnqueue(0x3343, 0, dec_);      // Velocity Deceleration - Delta t
+
+	WriteDataEnqueue(0x3000, 0, 5);      	//Updates set values
+}
+
+
+void BG95::SetQuickStopDecelerationCommand(uint32_t qdec)
+{
+	uint32_t qdec_ = qdec;
+
+	WriteDataEnqueue(0x3344, 0, qdec_);      // Velocity Deceleration - Quick-Stop - Delta v
+
+	WriteDataEnqueue(0x3345, 0, qdec_);      // Velocity Deceleration - Quick-Stop - Delta t
+
+	WriteDataEnqueue(0x3000, 0, 5);      	//Updates set values
+}
+
+
+
+
+
+
 
 
 

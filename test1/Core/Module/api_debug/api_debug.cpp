@@ -77,7 +77,7 @@ extern CAN_HandleTypeDef hcan1;
 extern char char_ethernet;
 extern BG95 bg95test;
 
-
+int a_= 2000;
 int testpos= 100000;
 
 //for uart1 debug
@@ -104,7 +104,10 @@ void DebugDrive()
 		case '2': bg95test.RelPosCommand(&testpos); break;
 		case '3': bg95test.VelClockCommand(); break;
 		case '4': bg95test.VelCClockCommand(); break;
+		case '5': bg95test.SetMotorDirectionCommand(); break;
+		case '6': bg95test.SetMaxVelocityCommand(a_); break;
 		//case '9': bg95test.Drive(); break;
+		case '8': bg95test.ClearParamCommand(); break;
 		case '9': bg95test.StopMotorCommand(); break;
 
 		default: break;

@@ -239,26 +239,24 @@ void BG95::DataAnalysis()
 	//2.check commandbyte is matched(sdo)
 	if(cal_data.rxid_ != (this->nodeid_ + 0x580) ) return;
 
-
 	//3.only check read function for now
 	if(!( cal_data.read_Data_Byte_[0] >= 0x40 && cal_data.read_Data_Byte_[0] <= 0x4f )) return;
 
-	//4.
+	//4. revert index byte
 	//index |= cal_data.read_Data_Byte_[1] & 0x00ff;
 	//index |= cal_data.read_Data_Byte_[2] & 0xff00 ;
 	index |= cal_data.read_Data_Byte_[1];
 	index |= cal_data.read_Data_Byte_[2] * 256 ;
 
-	//5.
+	//5.revert sub-index byte
 	subindex = cal_data.read_Data_Byte_[3];
 
-	//6.
-	data |= cal_data.read_Data_Byte_[4];
-	data |= cal_data.read_Data_Byte_[5] *  256 ;
-	data |= cal_data.read_Data_Byte_[6] *  512 ;
-	data |= cal_data.read_Data_Byte_[7] *  1024 ;
+	//6.revert data byte
+	data = cal_data.read_Data_Byte_[4] + (cal_data.read_Data_Byte_[5]*0x100) +
+			(cal_data.read_Data_Byte_[6] * 0x10000) + (cal_data.read_Data_Byte_[7]*0x1000000);
 
 	DataProcess(index, subindex, data);
+
 }
 
 void BG95::DataProcess(int index, int subindex, int data)
@@ -267,22 +265,31 @@ void BG95::DataProcess(int index, int subindex, int data)
 	{
 		case 0x3111: this->motor_voltage_ = data ; break;
 		case 0x3113: this->motor_current_ = data ; break;
-		//case 0x3762: this->motor_pos_ = data ; break;
-		case 0x396a: this->motor_pos_ = data ; break;
+		case 0x3762: this->motor_pos_ = data ; break;  //actual position
+		//case 0x396a: this->motor_pos_ = data ; break; //encoder pos
 
 		case 0x3a04:
 			if(subindex == 1) this->motor_vel_ = data ;
 			break;
 
-		case 0x3340: this->motor_acc_ = data; break;
-		case 0x3342: this->motor_dec_ = data; break;
+
+		//setting parameters
+		case 0x3300: this->max_vel_ = data; break;
+
+		case 0x3340: this->acc_rpm_ = data; break;
+		case 0x3341: this->acc_time_ = data; break;
+
+		case 0x3342: this->dec_rpm_ = data; break;
+		case 0x3343: this->dec_time_ = data; break;
+
+		case 0x3344: this->qdec_rpm_ = data; break;
+		case 0x3345: this->qdec_time_ = data; break;
+
 		case 0x3001: this->err_data_ = (uint16_t)data ; break;
 		case 0x3002: this->stat_reg_ = (uint16_t)data ; break;
 
 	}
 }
-
-
 
 
 void BG95::AsyncQueueSaveRequest(CAN_WData_HandleTypeDef cmd){this->AsyncRequestQueue.push_back(cmd);}
@@ -394,6 +401,9 @@ void BG95::Drive()
 	DriveAnalysis();
 }
 
+
+
+
 //Read value functions
 const uint32_t BG95::GetMotorVoltage() {return this->motor_voltage_;}
 const int32_t BG95::GetMotorCurrent() {return this->motor_current_;}
@@ -410,5 +420,14 @@ const bool BG95::IsPowerUp() {return (this->stat_reg_&& 0x01);}
 const bool BG95::IsErrUp() {return (this->stat_reg_&& 0x02);}
 const bool BG95::IsMotorMoving() {return (this->stat_reg_&& 0x04);}
 const bool BG95::IsTargetPosReached() {return (this->stat_reg_&& 0x08);}
+
+
+
+BG95& BG95::SetMotorDirectionCommand()
+{
+	this->motor_dir_ = !this->motor_dir_;
+	return *this;
+}
+
 
 
