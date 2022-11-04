@@ -72,7 +72,7 @@ class BG95
 		//Dunkor can comm. Device Parameters.
 
 		//acc., dec. speed params
-		int32_t max_vel_ = 1000;
+		int32_t actual_max_vel_ = 0;
 		uint32_t acc_rpm_ = 1000;
 		uint32_t acc_time_ = 1000;
 		uint32_t dec_rpm_ = 1000;
@@ -80,24 +80,21 @@ class BG95
 		uint32_t qdec_rpm_ = 2000;
 		uint32_t qdec_time_ = 2000;
 
-		//Only Read parameters
+		//Only Read parameterss
 		uint32_t motor_voltage_;	//mV
 		int32_t motor_current_;	//mA
 
 		int32_t motor_pos_;	//present postiion
+		int32_t target_pos_; //target position
 		int32_t motor_vel_;	//rpm
-		uint32_t motor_acc_;	//dV[rpm]
-		uint32_t motor_dec_;	//dV[rpm]
-
 
 		//device status
 		uint32_t stat_reg_;
 		uint32_t err_data_;
 
-
-
 		//mode
-		bool motor_dir_ = false;   //only available for pos mode
+		//int32_t jog_vel_ = 200;
+		int32_t max_vel_ = 1000;
 
 		//queue(vector)
 		std::vector<CAN_WData_HandleTypeDef> AsyncRequestQueue;
@@ -179,6 +176,7 @@ class BG95
 		const uint32_t GetMotorVoltage();
 		const int32_t GetMotorCurrent();
 		const int32_t GetMotorPosition();
+		const int32_t GetTargetPosition();
 		const int32_t GetMotorVelocity();
 		const uint32_t GetMotorAccelation();
 		const uint32_t GetMotorDeceleration();
@@ -190,16 +188,20 @@ class BG95
 		void SetAccelerationCommand(uint32_t aec);
 		void SetDecelerationCommand(uint32_t dec);
 		void SetQuickStopDecelerationCommand(uint32_t qdec);
-		BG95& SetMotorDirectionCommand();
 
+		void SetPowerEnableCommand();
+		void SetPowerDisableCommand();
 
-
+		void SetPositionMinLimitCommand();
+		void SetPositionMaxLimitCommand();
+		void SetInitalPositionCommand();
 
 		//read status functions
 		const bool IsPowerUp();
 		const bool IsErrUp();
 		const bool IsMotorMoving();
 		const bool IsTargetPosReached();
+		const bool IsMotorReachLimit();
 
 };
 

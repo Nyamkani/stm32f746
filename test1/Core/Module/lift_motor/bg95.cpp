@@ -100,19 +100,8 @@ uint16_t BG95::TransmitReceiveResponse()
 
 		for(int i =0; i<=7; i++) cal_data.read_Data_Byte_[i] = RxData[i];
 
-		//std::copy(cal_data.read_Data_Byte_,
-		//		cal_data.read_Data_Byte_ + cal_data.data_length_, RxData);
-
 		QueueSaveReceive(cal_data);
 
-		/*if data is error data*/
-		//if(RxHeader)
-
-		/* Retrieve the received data */
-		//RequestQueue.front().rxid_ = this->nodeid_ + RxHeader.StdId;
-
-		//std::copy(RequestQueue.front().read_Data_Byte_,
-		//		RequestQueue.front().read_Data_Byte_ + RequestQueue.front().data_length_, RxData);
 	}
 
 	return state;
@@ -171,7 +160,6 @@ void BG95::AsyncWriteDataEnqueue(int index, int subindex, int data)
 	int subindex_ = subindex;
 	int data_ = data;
 	int data_size_  = 0;
-
 
 	/*to confirm the command byte*/
 	switch(data_size_)
@@ -243,10 +231,8 @@ void BG95::DataAnalysis()
 	if(!( cal_data.read_Data_Byte_[0] >= 0x40 && cal_data.read_Data_Byte_[0] <= 0x4f )) return;
 
 	//4. revert index byte
-	//index |= cal_data.read_Data_Byte_[1] & 0x00ff;
-	//index |= cal_data.read_Data_Byte_[2] & 0xff00 ;
 	index |= cal_data.read_Data_Byte_[1];
-	index |= cal_data.read_Data_Byte_[2] * 256 ;
+	index |= cal_data.read_Data_Byte_[2] * 0x100 ;
 
 	//5.revert sub-index byte
 	subindex = cal_data.read_Data_Byte_[3];
@@ -265,6 +251,8 @@ void BG95::DataProcess(int index, int subindex, int data)
 	{
 		case 0x3111: this->motor_voltage_ = data ; break;
 		case 0x3113: this->motor_current_ = data ; break;
+
+		case 0x3760: this->target_pos_ = data ; break; //actual target position
 		case 0x3762: this->motor_pos_ = data ; break;  //actual position
 		//case 0x396a: this->motor_pos_ = data ; break; //encoder pos
 
@@ -272,9 +260,8 @@ void BG95::DataProcess(int index, int subindex, int data)
 			if(subindex == 1) this->motor_vel_ = data ;
 			break;
 
-
 		//setting parameters
-		case 0x3300: this->max_vel_ = data; break;
+		case 0x3300: this->actual_max_vel_ = data; break;
 
 		case 0x3340: this->acc_rpm_ = data; break;
 		case 0x3341: this->acc_time_ = data; break;
@@ -318,9 +305,7 @@ void BG95::QueueDeleteReceive()
 void BG95::HAL_CAN_Initialization()
 {
 	/* Can Start */
-	/* Activate CAN RX notification */
-	if ((HAL_CAN_Start(this->hcanx_) != HAL_OK))// ||
-	//	(HAL_CAN_ActivateNotification(this->hcanx_, CAN_IT_RX_FIFO0_MSG_PENDING) != HAL_OK))
+	if ((HAL_CAN_Start(this->hcanx_) != HAL_OK))
 	{
 		this->err_code_ = initfailed;
 	}
@@ -408,9 +393,10 @@ void BG95::Drive()
 const uint32_t BG95::GetMotorVoltage() {return this->motor_voltage_;}
 const int32_t BG95::GetMotorCurrent() {return this->motor_current_;}
 const int32_t BG95::GetMotorPosition() {return this->motor_pos_;}
+const int32_t BG95::GetTargetPosition() {return this->target_pos_;}
 const int32_t BG95::GetMotorVelocity() {return this->motor_vel_;}
-const uint32_t BG95::GetMotorAccelation() {return this->motor_acc_;}
-const uint32_t BG95::GetMotorDeceleration() {return this->motor_dec_;}
+const uint32_t BG95::GetMotorAccelation() {return this->acc_rpm_;}
+const uint32_t BG95::GetMotorDeceleration() {return this->dec_rpm_;}
 
 const uint32_t BG95::GetMotorStatus() {return this->stat_reg_;}
 const uint32_t BG95::GetMotorErrData() {return this->err_data_;}
@@ -419,15 +405,10 @@ const uint32_t BG95::GetMotorErrData() {return this->err_data_;}
 const bool BG95::IsPowerUp() {return (this->stat_reg_&& 0x01);}
 const bool BG95::IsErrUp() {return (this->stat_reg_&& 0x02);}
 const bool BG95::IsMotorMoving() {return (this->stat_reg_&& 0x04);}
-const bool BG95::IsTargetPosReached() {return (this->stat_reg_&& 0x08);}
+const bool BG95::IsTargetPosReached() {return (this->stat_reg_&& 0x0100);}
+const bool BG95::IsMotorReachLimit() {return (this->stat_reg_&& 0x4000);}
 
 
-
-BG95& BG95::SetMotorDirectionCommand()
-{
-	this->motor_dir_ = !this->motor_dir_;
-	return *this;
-}
 
 
 

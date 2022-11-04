@@ -104,9 +104,9 @@ void DebugDrive()
 		case '2': bg95test.RelPosCommand(&testpos); break;
 		case '3': bg95test.VelClockCommand(); break;
 		case '4': bg95test.VelCClockCommand(); break;
-		case '5': bg95test.SetMotorDirectionCommand(); break;
+		case '5': bg95test.SetPositionMaxLimitCommand(); break;
 		case '6': bg95test.SetMaxVelocityCommand(a_); break;
-		//case '9': bg95test.Drive(); break;
+		case '7': bg95test.Initialization(); break;
 		case '8': bg95test.ClearParamCommand(); break;
 		case '9': bg95test.StopMotorCommand(); break;
 

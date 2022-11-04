@@ -27,12 +27,16 @@ void BG95::MandatoryParamEnqueue()
 	// a.) Device parameters:
 	WriteDataEnqueue(0x3004, 0, 0);      // Power Disable
 
+	//Motor Type
 	WriteDataEnqueue(0x3900, 0, 1);      // Motor - Type: 1 = brushless Motor (BLDC)
 	WriteDataEnqueue(0x3910, 0, 8);      // Motor - Number of Poles (8 - bg95)
+
+	//Encoder feedback enable
+	WriteDataEnqueue(0x3550, 0, 2410);      //  Encoder feedback for the velocity controller
+	WriteDataEnqueue(0x3550, 0, 2410);      //  Encoder feedback for the secondary velocity controller
 	WriteDataEnqueue(0x3962, 0, 4096);      // Encoder resolution in counts: sin/cos = 4096, 1000h
-	WriteDataEnqueue(0x3350, 0, 2410);      // Position feedback: 2410 = ENCODER-Feedback (sin/cos)
-	WriteDataEnqueue(0x3550, 0, 2410);      // Velocity feedback: 2410 = ENCODER-Feedback (sin/cos)
-	WriteDataEnqueue(0x35A1, 0, 20000);      // Maximum velocity: 20000 = 2.0 m/s
+
+	//WriteDataEnqueue(0x35A1, 0, 20000);      // Maximum Sub Velocity: 20000 = 2.0 m/s
 
 	// b.) Current limits (Attention: Note the motor data sheet!):
 	WriteDataEnqueue(0x3221, 0, 10000);      // Current limit - max. positive [mA]
@@ -44,17 +48,21 @@ void BG95::MandatoryParamEnqueue()
 	WriteDataEnqueue(0x3224, 3, 1000);      // Dynamic Current Limit I*t - Time [ms]
 
 	// c.) Controller parameters
+	// Primary Velocity controller
 	WriteDataEnqueue(0x3310, 0, 500);      // PID-Position Controller - Proportional gain
+	WriteDataEnqueue(0x3311, 0, 50);      // PID-Position Controller - Integral Factor
 	WriteDataEnqueue(0x3312, 0, 1);      // PID-Position Controller - Differential gain
 
-	WriteDataEnqueue(0x3313, 0, 1);      // integration limit of the position controller
+	WriteDataEnqueue(0x3313, 0, 10000);      // integration limit of the position controller
 	WriteDataEnqueue(0x3314, 0, 1000);      // velocity feed foward factor
 	WriteDataEnqueue(0x3315, 0, 1);      // Accelation feed foward factor
 
+	// Secondary Velocity controller
 	WriteDataEnqueue(0x3510, 0, 500);      // PI-Velocity Controller - Proportional gain
 	WriteDataEnqueue(0x3511, 0, 50);      // PI-Velocity Controller - Integration constant
 	WriteDataEnqueue(0x3517, 0, 1);      // compensation factor
 
+	// Current controller
 	WriteDataEnqueue(0x3210, 0, 35);      // PI-Current Controller - Proportional gain
 	WriteDataEnqueue(0x3211, 0, 2);      // PI-Current Controller - Integration constant
 
@@ -97,8 +105,8 @@ void BG95::HardwareParamEnqueue()
 	WriteDataEnqueue(0x3000, 0, 5);      // save actual parameters
 
 	//final approach
-	//WriteDataEnqueue(0x3732, 0, 1000);   // position following error - window
-	WriteDataEnqueue(0x3762, 0, 0);   // reset actual position
+	WriteDataEnqueue(0x3732, 0, 1000);   // position following error - window
+	WriteDataEnqueue(0x3762, 0, 0);      // reset actual position
 	WriteDataEnqueue(0x3000, 0, 1);      // reset error register
 
 }
@@ -107,19 +115,19 @@ void BG95::HardwareParamEnqueue()
 void BG95::BreakManagementEnqueue()
 {
 	/*Manual oepn break*/
-	WriteDataEnqueue(0x3150, 0, 2);      // Open Break
+	//WriteDataEnqueue(0x3150, 0, 2);      // Open Break
 
 	/*Break management config.*/
-	//WriteDataEnqueue(0x39a0, 0, 3);      // Brake Management - Configuration - auto disable when the movoment ends
+	WriteDataEnqueue(0x39a0, 0, 3);      // Brake Management - Configuration - auto disable when the movoment ends
 
-	//WriteDataEnqueue(0x39a0, 24, 5);      // Brake Management - Activating Condition
-	//WriteDataEnqueue(0x39a0, 26, 5);      // Brake Management - Deactivating Condition
-	//WriteDataEnqueue(0x39a0, 8, 353);      // Brake Management - Brake Output(Digital output 1 High-active)
+	WriteDataEnqueue(0x39a0, 24, 5);      // Brake Management - Activating Condition
+	WriteDataEnqueue(0x39a0, 26, 5);      // Brake Management - Deactivating Condition
+	WriteDataEnqueue(0x39a0, 8, -353);      // Brake Management - Brake Output(Digital output 1 High-active)
 
-	//WriteDataEnqueue(0x39a0, 16, 200);      // Brake Management - Brake Output
-	//WriteDataEnqueue(0x39a0, 17, 200);      // Brake Management - Brake Output
-	//WriteDataEnqueue(0x39a0, 18, 200);      // Brake Management - Brake Output
-	//WriteDataEnqueue(0x39a0, 19, 200);      // Brake Management - Brake Output
+	WriteDataEnqueue(0x39a0, 16, 200);      // Brake Management - Brake Output
+	WriteDataEnqueue(0x39a0, 17, 200);      // Brake Management - Brake Output
+	WriteDataEnqueue(0x39a0, 18, 200);      // Brake Management - Brake Output
+	WriteDataEnqueue(0x39a0, 19, 200);      // Brake Management - Brake Output
 
 	//WriteDataEnqueue(0x3000, 0, 128);      // Stores actual parameters
 }
@@ -150,7 +158,6 @@ void BG95::AbsPosCommandEnqueue(int *tPos)
 	int tPos_ = 0;
 
 	if(tPos != NULL) tPos_ = *tPos;
-	if(this->motor_dir_) tPos_ *= (-1);
 
 	AsyncWriteDataEnqueue(0x3000, 0, 1);      // reset error register
 
@@ -163,8 +170,7 @@ void BG95::RelPosCommandEnqueue(int *tPos)
 	int tPos_ = 0;
 
 	if(tPos != NULL) tPos_ = *tPos;
-	if(this->motor_dir_) tPos_ *= (-1)
-			;
+
 	AsyncWriteDataEnqueue(0x3000, 0, 1);      // reset error register
 
 	AsyncWriteDataEnqueue(0x3791, 0, tPos_);   // target position
@@ -200,11 +206,11 @@ void BG95::ReadSchduleCommandEnqueue()
 	ReadDataEnqueue(0x3111, 0, 0);      // actual motor voltage
 
 	ReadDataEnqueue(0x3113, 0, 0);      // actual motor current
-	//ReadDataEnqueue(0x3760, 0, 0);      // Actual Target Position
+	ReadDataEnqueue(0x3760, 0, 0);      // Actual Target Position
 	//ReadDataEnqueue(0x3761, 0, 0);      // Actual Command Position
 
 	//motor pos.
-	ReadDataEnqueue(0x3762, 0, 0);      // Actual Position(
+	ReadDataEnqueue(0x3762, 0, 0);      // Actual Position
 
 	//motor dynamics
 	ReadDataEnqueue(0x3a04, 1, 0);      // Currently velocity(rpm)
@@ -277,14 +283,12 @@ void BG95::ClearParamCommand()
 void BG95::StopMotorCommand()
 {
 	AsyncWriteDataEnqueue(0x3000, 0, 3);      // halt
-	WriteDataEnqueue(0x3000, 0, 3);      // halt
 }
 
 
 void BG95::EMGStopMotorCommand()
 {
 	AsyncWriteDataEnqueue(0x3000, 0, 2);      // quick stop
-	WriteDataEnqueue(0x3000, 0, 2);      // quick stop
 }
 
 
@@ -354,9 +358,30 @@ void BG95::SetQuickStopDecelerationCommand(uint32_t qdec)
 	WriteDataEnqueue(0x3000, 0, 5);      	//Updates set values
 }
 
+void BG95::SetPowerEnableCommand()
+{
+	WriteDataEnqueue(0x3004, 0, 1);      // Power Enable - enable
+}
 
+void BG95::SetPowerDisableCommand()
+{
+	WriteDataEnqueue(0x3004, 0, 0);      // Power Enable - disable
+}
 
+void BG95::SetPositionMinLimitCommand()
+{
+	AsyncWriteDataEnqueue(0x3720, 0, this->motor_pos_);      // Position Limit - Minimum
+}
 
+void BG95::SetPositionMaxLimitCommand()
+{
+	AsyncWriteDataEnqueue(0x3720, 1, this->motor_pos_);      // Position Limit - Maximum
+}
+
+void BG95::SetInitalPositionCommand()
+{
+	AsyncWriteDataEnqueue(0x3620, 0, 0);      // Position Limit - Maximum
+}
 
 
 
