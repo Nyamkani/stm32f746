@@ -4,4 +4,4 @@
 ../Core/Module/api_debug/api_debug.cpp:34:6:)	16	static
 ../Core/Module/api_debug/api_debug.cpp:42:6:void HAL_UART_RxCpltCallback(UART_HandleTypeDef*)	16	static
 ../Core/Module/api_debug/api_debug.cpp:64:6:void Debug_Uart_Init()	8	static
-../Core/Module/api_debug/api_debug.cpp:84:6:void DebugDrive()	24	static
+../Core/Module/api_debug/api_debug.cpp:84:6:void DebugDrive()	32	static

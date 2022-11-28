@@ -8,6 +8,8 @@
 #include "stm32f7xx_hal.h"
 #include "transmit_tools/transmit_tools.h"
 
+#include <lift_motor/bg95_define.h>
+
 #ifndef MODULE_LIFT_MOTOR_BG95_H_
 #define MODULE_LIFT_MOTOR_BG95_H_
 
@@ -65,8 +67,8 @@ class BG95
 		//CAN_FilterTypeDef  sFilterConfig;
 		uint16_t nodeid_ = 127;
 
-		int err_code_;
-		bool comm_status_;
+		int err_code_ = 0;
+		bool comm_status_ = true;
 
 		//-----------------------------------------------------------Dunkor params
 		//Dunkor can comm. Device Parameters.
@@ -80,13 +82,13 @@ class BG95
 		uint32_t qdec_rpm_ = 2000;
 		uint32_t qdec_time_ = 2000;
 
-		//Only Read parameterss
+		//Only Read parameters
 		uint32_t motor_voltage_;	//mV
-		int32_t motor_current_;	//mA
+		int32_t motor_current_;		//mA
 
-		int32_t motor_pos_;	//present postiion
-		int32_t target_pos_; //target position
-		int32_t motor_vel_;	//rpm
+		int32_t motor_pos_;			//present postiion
+		int32_t target_pos_; 		//target position
+		int32_t motor_vel_;			//rpm
 
 		//device status
 		uint32_t stat_reg_;
@@ -94,7 +96,10 @@ class BG95
 
 		//mode
 		//int32_t jog_vel_ = 200;
-		int32_t max_vel_ = 1000;
+		int32_t max_vel_ = 3000;
+		int32_t drive_vel_ = 1000;
+		int motor_dir_ = 0x00;
+		bool can_lock_ = false;
 
 		//queue(vector)
 		std::vector<CAN_WData_HandleTypeDef> AsyncRequestQueue;
@@ -123,7 +128,7 @@ class BG95
 
 		void WriteDataEnqueue(int index, int subindex, int data);
 		void AsyncWriteDataEnqueue(int index, int subindex, int data);
-		void ReadDataEnqueue(int index, int subindex, int data);
+		void ReadDataEnqueue(int index, int subindex);
 
 		void HAL_CAN_Initialization();
 		void HAL_CAN_DeInitialization();
@@ -149,20 +154,22 @@ class BG95
 		void RecommendationParamEnqueue();
 		void HardwareParamEnqueue();
 		void BreakManagementEnqueue();
-		void SetPositionControlEnqueue();
-		void SetVelocityControlEnqueue(bool dir);
-		void AbsPosCommandEnqueue(int *tPos);
-		void RelPosCommandEnqueue(int *tPos);
+		void SetPositionControlModeEnqueue();
+		void SetVelocityControlModeEnqueue();
+		void SetSubVelocityControlModeEnqueue();
+		void AbsPosCommandEnqueue(int tPos);
+		void RelPosCommandEnqueue(int tPos);
+		void SetDirectionEnqueue(int motor_dir);
 
 		void ReadSchduleCommandEnqueue();
 
 
 	public:
 		//command function
-		void AbsPosCommand(int *tPos);
-		void RelPosCommand(int *tPos);
-		void VelClockCommand();
-		void VelCClockCommand();
+		void AbsPosCommand(int vel, uint32_t acc, uint32_t dec, int tpos);
+		void RelPosCommand(int vel, uint32_t acc, uint32_t dec, int tpos);
+		void VelCommand(int vel, uint32_t acc, uint32_t dec);
+		void SubVelCommand(int vel, uint32_t acc, uint32_t dec);
 
 		void StopMotorCommand();
 		void EMGStopMotorCommand();
@@ -184,17 +191,28 @@ class BG95
 		const uint32_t GetMotorStatus();
 		const uint32_t GetMotorErrData();
 
-		void SetMaxVelocityCommand(int32_t vel);
+		void SetVelocityCommand(int32_t vel);
+		void SetSubVelocityCommand(int32_t vel);
 		void SetAccelerationCommand(uint32_t aec);
 		void SetDecelerationCommand(uint32_t dec);
 		void SetQuickStopDecelerationCommand(uint32_t qdec);
 
+		void SetDirectionNormalCommand();
+		void SetDirectionReverseCommand();
+
 		void SetPowerEnableCommand();
 		void SetPowerDisableCommand();
 
+		void SetZeroPositionCommand();
+
 		void SetPositionMinLimitCommand();
 		void SetPositionMaxLimitCommand();
-		void SetInitalPositionCommand();
+		//void SetInitalPositionCommand();
+
+
+		void ResetPositionCommand();
+		void ResetErrorCommand();
+
 
 		//read status functions
 		const bool IsPowerUp();

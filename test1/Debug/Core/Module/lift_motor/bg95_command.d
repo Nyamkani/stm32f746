@@ -37,7 +37,8 @@ Core/Module/lift_motor/bg95_command.o: \
  ../Drivers/STM32F7xx_HAL_Driver/Inc/stm32f7xx_hal_uart_ex.h \
  /home/studio3s/st/STM32CubeIDE/workspace_1.9.0/test1/Core/Module/transmit_tools/transmit_tools.h \
  ../Drivers/CMSIS/Device/ST/STM32F7xx/Include/stm32f746xx.h \
- /home/studio3s/st/STM32CubeIDE/workspace_1.9.0/test1/Core/Module/transmit_tools/../../Module/Util/CalcCRC.h
+ /home/studio3s/st/STM32CubeIDE/workspace_1.9.0/test1/Core/Module/transmit_tools/../../Module/Util/CalcCRC.h \
+ /home/studio3s/st/STM32CubeIDE/workspace_1.9.0/test1/Core/Module/lift_motor/bg95_define.h
 /home/studio3s/st/STM32CubeIDE/workspace_1.9.0/test1/Core/Module/lift_motor/bg95.h:
 ../Drivers/STM32F7xx_HAL_Driver/Inc/stm32f7xx_hal.h:
 ../Core/Inc/stm32f7xx_hal_conf.h:
@@ -76,3 +77,4 @@ Core/Module/lift_motor/bg95_command.o: \
 /home/studio3s/st/STM32CubeIDE/workspace_1.9.0/test1/Core/Module/transmit_tools/transmit_tools.h:
 ../Drivers/CMSIS/Device/ST/STM32F7xx/Include/stm32f746xx.h:
 /home/studio3s/st/STM32CubeIDE/workspace_1.9.0/test1/Core/Module/transmit_tools/../../Module/Util/CalcCRC.h:
+/home/studio3s/st/STM32CubeIDE/workspace_1.9.0/test1/Core/Module/lift_motor/bg95_define.h:

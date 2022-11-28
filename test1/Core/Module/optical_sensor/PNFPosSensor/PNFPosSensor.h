@@ -32,12 +32,25 @@ enum err_list
 	InternalFatal = 0x1000,  			//internal error (Recommend to change sensors)
 	//0x2000 = reserved
 	//0x4000 = reserved
-	//0x8000 = reserved
+	InitFailed = 0x8000,
 	//--------------------------------------------------------------------
 };
 
+enum buffer_length
+{
+	PGV100Color = 2,
+	PGV100Dir = 3,
+	PGV100Pos = 21,
 
+	PCV80Pos = 9,
+};
 
+enum PNFPOS_unit
+{
+	decimeter_1 = 1,
+	milimeter_1 = 10,
+	meter_1 = 10000,
+};
 
 class PNFPosSensor
 {
@@ -60,7 +73,7 @@ class PNFPosSensor
 		double ypos_ = 0;
 
 		//to see err status
-		uint16_t err_code_ = 0;
+		uint16_t err_code_ = InitFailed;
 		bool comm_status_ = true;  //good
 
 		//---------------------------------------------------------------------------pgv100 parameters. declation
@@ -71,7 +84,7 @@ class PNFPosSensor
 		uint16_t unit_= 10000;
 
 		//if communication direction pins available
-		bool comm_dir_available_;
+		bool comm_dir_available_ = false;
 		GPIO_TypeDef* GPIO_ = NULL;
 		uint16_t dir_pin_no_;
 
@@ -83,6 +96,8 @@ class PNFPosSensor
 		std::vector<uint16_t> pos_buf_;      // Response POS data buffer
 		uint16_t max_read_buf_size_;
 
+		//Init check
+		bool init_done_= false;
 		//---------------------------------------------------------------------------485 Comm. cmds declation
 		//Values for request cmd
 		std::vector<uint16_t> RequestCmd;
@@ -112,7 +127,7 @@ class PNFPosSensor
 		virtual void DriveAnalysis() = 0;
 
 		//main functions
-		virtual void Initialization() = 0;
+		virtual int Initialization() = 0;
 		bool IsErrUp();
 		bool Drive();
 

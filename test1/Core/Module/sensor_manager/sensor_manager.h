@@ -10,7 +10,6 @@
 
 
 #include <math.h>
-#include <optical_sensor/pgv100/pgv100.h>
 #include <stdlib.h>
 #include <stdint.h>
 #include <vector>
@@ -18,7 +17,8 @@
 #include <queue>
 
 #include "common_sensor/common_sensor.h"
-
+#include <optical_sensor/pgv100/pgv100.h>
+#include <optical_sensor/pcv80/pcv80.h>
 
 enum pickliftmask
 {
@@ -50,6 +50,7 @@ class SensorManager
 		//sensor vectors
 		std::vector<CommonSensor*> common_sensors_;
 		std::vector<PGV100*> pgv100_;
+		std::vector<PCV80*> pcv80_;
 		//std::vector<PGV100*> pnf_pos_sensors_;
 
 		//uint16_t commonsensorindex_;
@@ -126,6 +127,16 @@ class SensorManager
 		void PGV100DirStraight();
 		void PGV100DirLeft();
 		void PGV100DirRight();
+
+		void PCV80Register();
+		bool PCV80Initialize();
+		void PCV80Reset();
+		void PCV80Drive();
+		double PCV80GetXData() const;
+		double PCV80GetYData() const;
+		double PCV80GetErrData() const;
+		bool PCV80IsErrUp() const;
+
 
 };
 

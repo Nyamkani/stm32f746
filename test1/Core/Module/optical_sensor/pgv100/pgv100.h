@@ -43,12 +43,6 @@ enum PGV100_color
 	Blue = 2,
 };
 
-enum buffer_length
-{
-	PGV100Color = 2,
-	PGV100Dir = 3,
-	PGV100Pos = 21,
-};
 
 
 
@@ -67,11 +61,6 @@ enum PGV100_cmd
 	PGV100PosRequest = 6,                         //for Reqeusting messages    from head to receive POSITON
 };
 
-enum PGV100_unit
-{
-	milimeter_1 = 10,
-	meter_1 = 10000,
-};
 
 
 class PGV100 : public PNFPosSensor
@@ -97,17 +86,19 @@ class PGV100 : public PNFPosSensor
 
 		double angle_offset_;
 
-		bool init_done_= false;
+
+		//filter params
+		uint16_t max_filter_cnt_ = 0;
 
 		//Limitation
-		int32_t pos_area_max_ = 20000;      // Max. range of tape value                                       // PCV센서 범위 Maximum(mm)
+		int32_t pos_area_max_ = 1000000;      // Max. range of tape value                                       // PCV센서 범위 Maximum(mm)
 		int32_t pos_area_min_ = (-100);   // Min. range of tape value
 
 		//--------------------------------------------------------------------------- Inherited Module
 		void ResetAllData();
 
 		///First Time setup
-		void RegisterRequsetCmd();
+		void RegisterRequestCmd();
 		void RegisterDefaultParam();
 
 		//Initialization for work-loop
@@ -173,6 +164,10 @@ class PGV100 : public PNFPosSensor
 
 		void RequestGetPGV100Pos();
 
+		void ProcessGetColorInfo();
+		void ProcessGetDirInfo();
+		void ProcessGetPosInfo();
+
 
 		//overriding functions
 		//virtual for each sensors
@@ -183,7 +178,7 @@ class PGV100 : public PNFPosSensor
 
 	public:
 		//main functions
-		void Initialization() override;
+		int Initialization() override;
 };
 
 

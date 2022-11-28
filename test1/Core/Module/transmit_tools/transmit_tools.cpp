@@ -15,7 +15,7 @@ int HAL_UsartTransmit(UART_HandleTypeDef* huartx, uint8_t* todata, int datalengt
 {
 	//return HAL_UART_Transmit_IT(huartx, todata, datalength);
     /* Process Locked */
-     __HAL_LOCK(huartx);
+    // __HAL_LOCK(huartx);
 
 	return HAL_UART_Transmit(huartx, todata, datalength, 10);
 }
@@ -24,7 +24,7 @@ int HAL_UsartReceive(UART_HandleTypeDef* huartx, uint8_t* fromdata, int dataleng
 {
 	//return HAL_UART_Receive_IT(huartx, fromdata, datalength);
     /* Process Locked */
-     __HAL_LOCK(huartx);
+    // __HAL_LOCK(huartx);
 
 	return HAL_UART_Receive(huartx, fromdata, datalength, 10);
 }

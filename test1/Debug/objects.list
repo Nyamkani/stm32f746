@@ -9,7 +9,7 @@
 "./Core/Module/lift_motor/bg95.o"
 "./Core/Module/lift_motor/bg95_command.o"
 "./Core/Module/optical_sensor/PNFPosSensor/PNFPosSensor.o"
-"./Core/Module/optical_sensor/pcv80/PCV80.o"
+"./Core/Module/optical_sensor/pcv80/pcv80.o"
 "./Core/Module/optical_sensor/pgv100/pgv100.o"
 "./Core/Module/sensor_manager/sensor_manager.o"
 "./Core/Module/transmit_tools/transmit_tools.o"

@@ -21,7 +21,6 @@ PGV100::PGV100()
 	x_offset_ = 0.0;
 	y_offset_ = 0.0;
 	angle_offset_ = 0.0;
-	//Total_PNF_Sensor_Num++;
 }
 
 PGV100::PGV100(uint16_t index, uint16_t commtype, UART_HandleTypeDef *huartx,
@@ -75,7 +74,7 @@ void PGV100::ResetAllData()
 
 
 //--------------------------------------------------------------Construct level - network, first parmas. declation
-void PGV100::RegisterRequsetCmd()
+void PGV100::RegisterRequestCmd()
 {
 	RequestCmd.reserve(10);
 	RequestCmd.emplace_back(0xEC);   //0
@@ -94,6 +93,7 @@ void PGV100::RegisterDefaultParam()
 	//Change_YOffset(1);
 	//Change_Angle_Offset(1);
 	ResetAllData();
+
 	RequestChangeDirstraight();
 }
 
@@ -106,13 +106,19 @@ void PGV100::ReadBufferInit()
 	{
 		//position
 		case PGV100PosRequest: this->max_read_buf_size_ = PGV100Pos; break;
+
 		//Directions
 		case PGV100StraightRequest: this->max_read_buf_size_ = PGV100Dir; break;
+
 		case PGV100LeftRequest: this->max_read_buf_size_ = PGV100Dir; break;
+
 		case PGV100RightRequest: this->max_read_buf_size_ = PGV100Dir; break;
+
 		//Colors
 		case PGV100RedRequest: this->max_read_buf_size_ = PGV100Color; break;
+
 		case PGV100GreenRequest: this->max_read_buf_size_ = PGV100Color; break;
+
 		case PGV100BlueRequest: this->max_read_buf_size_ = PGV100Color; break;
 	}
 	//size initialize
@@ -127,12 +133,14 @@ void PGV100::ReadBufferInit()
 PGV100& PGV100::SetXOffset(double X_Offset)
 {
 	this->x_offset_ = X_Offset;
+
 	return* this;
 }
 
 PGV100& PGV100::SetYOffset(double Y_Offset)
 {
 	this->y_offset_ = Y_Offset;
+
 	return* this;
 }
 
@@ -140,12 +148,14 @@ PGV100& PGV100::SetYOffset(double Y_Offset)
 PGV100& PGV100::SetAngleOffset(double Angle_Offset)
 {
 	this->angle_offset_ = Angle_Offset;
+
 	return* this;
 }
 
 PGV100& PGV100::SetUnit(double unit)
 {
 	this->unit_ = unit;
+
 	return* this;
 }
 
@@ -190,10 +200,14 @@ uint16_t PGV100::GetCommtype() const {return comm_type_;}
 
 uint32_t PGV100::ProcessGetERRInfo(std::vector<uint16_t> temp_buf)
 {
-	uint32_t err_data = ((temp_buf)[5]) & 0xFF;
-	(err_data)|=((temp_buf)[4] << 7) & 0xFF;
-	(err_data)|=((temp_buf)[3] << 14) & 0xFF;
-	(err_data)|=(((temp_buf)[2]&0x07) << 21) & 0xFF;
+	uint32_t err_data = ((temp_buf)[5]);
+
+	(err_data)|=((temp_buf)[4] << 7);
+
+	(err_data)|=((temp_buf)[3] << 14);
+
+	(err_data)|=(((temp_buf)[2]&0x07) << 21);
+
 	return err_data;
 }
 
@@ -207,52 +221,74 @@ bool PGV100::ProcessIsTagDetected(std::vector<uint16_t> temp_buf)
 uint16_t PGV100::ProcessGetTagNumber(std::vector<uint16_t> temp_buf)
 {
 	 uint16_t tag_num = 0;
-	 (tag_num)=((temp_buf)[17]) & 0xFF;
-	 (tag_num)|=((temp_buf)[16]<<7) & 0xFF;
-	 (tag_num)|=((temp_buf)[15]<<14) & 0xFF;
-	 (tag_num)|=((temp_buf)[14]<<21) & 0xFF;
+
+	 (tag_num)=((temp_buf)[17]);
+
+	 (tag_num)|=((temp_buf)[16]<<7);
+
+	 (tag_num)|=((temp_buf)[15]<<14);
+
+	 (tag_num)|=((temp_buf)[14]<<21);
+
 	 return tag_num;
 }
 
 double PGV100::ProcessGetAngleInfo(std::vector<uint16_t> temp_buf)
 {
-	 uint16_t angle = ((temp_buf)[11]) & 0xFF;
-	 (angle) |= ((temp_buf)[10] << 7) &0xFF;
+	 uint16_t angle = ((temp_buf)[11]);
+
+	 (angle) |= ((temp_buf)[10] << 7);
 
 	 double angle_d = (double)angle/10;
+
 	 if((angle_d)> 180.0f) angle_d-=360.0f; //makes x-axis zero centered
+
 	 return angle_d + this->angle_offset_;
 }
 
 double PGV100::ProcessGetXPosInfo(std::vector<uint16_t> temp_buf)
 {
-	int32_t XPosition_DATA=((temp_buf)[5]) & 0xFF;
-	(XPosition_DATA)|=((temp_buf)[4] << 7) & 0xFF;
-	(XPosition_DATA)|=((temp_buf)[4] << 14) & 0xFF;
-	(XPosition_DATA)|=(((temp_buf)[2]&0x07) << 21) & 0xFF;
+	int32_t XPosition_DATA=((temp_buf)[5]);
+
+	(XPosition_DATA)|=((temp_buf)[4] << 7);
+
+	(XPosition_DATA)|=((temp_buf)[3] << 14);
+
+	(XPosition_DATA)|=(((temp_buf)[2]&0x07) << 21);
 
 	 //for making X-axis center to zero
-	if(XPosition_DATA>=(100000)) XPosition_DATA = (XPosition_DATA-((double)(pow(2,24)-1))-((this->x_offset_)*(this->unit_)));
-	else XPosition_DATA = (XPosition_DATA-((this->x_offset_)*(this->unit_)));
+	if(XPosition_DATA>=(100000))
+	{
+		XPosition_DATA = (XPosition_DATA-((double)(pow(2,24)-1))-((this->x_offset_)*(this->unit_)));
+	}
 
+	else
+	{
+		XPosition_DATA = (XPosition_DATA-((this->x_offset_)*(this->unit_)));
+	}
 
-	double xpos = ((XPosition_DATA/(double)(this->unit_)));                   //To make units milimeters to meters
+	double xpos = ((XPosition_DATA/(double)(this->unit_)));				//To make Units for Selected Mode
 
 	if(xpos >= this->pos_area_min_ && xpos <= this->pos_area_max_) return xpos;
-	else return this->xpos_;  //	  else { state |= 0x0010;} //Out of Range
+	else return this->xpos_;
 }
 
 double PGV100::ProcessGetYPosInfo(std::vector<uint16_t> temp_buf)
 {
-	int32_t YPosition_DATA = ((temp_buf)[7]) & 0xFF;//Y Buf
-	(YPosition_DATA) |= (((temp_buf)[6]) << 7) & 0xFF;
+	int32_t YPosition_DATA = ((temp_buf)[7]);        //Y Buf
+	(YPosition_DATA) |= (((temp_buf)[6]) << 7);
 
 	//for making Y-axis center to zero
 	if(YPosition_DATA>=(1000))
-	YPosition_DATA = (YPosition_DATA-(16383)) - ((this->y_offset_)*(this->unit_));
-	else YPosition_DATA = (YPosition_DATA-(this->y_offset_*(this->unit_)));
+	{
+		YPosition_DATA = (YPosition_DATA-(16383)) - ((this->y_offset_)*(this->unit_));
+	}
+	else
+	{
+		YPosition_DATA = (YPosition_DATA-(this->y_offset_*(this->unit_)));
+	}
 
-	double ypos = ((YPosition_DATA/(double)(this->unit_)));
+	double ypos = ((YPosition_DATA/(double)(this->unit_))); 	 	//To make Units for Selected Mode
 
 	return ypos;
 }
@@ -265,7 +301,8 @@ uint16_t PGV100::ProcessGetDirectionInfo(std::vector<uint16_t> temp_buf)
 uint16_t PGV100::ProcessGetColorInfo(std::vector<uint16_t> temp_buf)
 {
 	if((temp_buf)[0]&0x07 && (temp_buf)[1]&0x07) return (uint16_t)(temp_buf)[1]&0x07;
-	else return this->color_;
+
+	return this->color_;
 }
 
 //---------------------------------------------------------------Processing data
@@ -276,7 +313,7 @@ uint16_t PGV100::ProcessChecksumData(std::vector<uint16_t> temp_buf)
 	uint16_t ChkSum_Data = 0;
 	uint16_t even_cnt[8]={0,};
 
-	//1. the last byte is for chksum data
+	//1. the last byte is for checksum data
 	temp_buf.pop_back();
 
 	//2. check each bytes for calculating 'xor' value
@@ -285,7 +322,9 @@ uint16_t PGV100::ProcessChecksumData(std::vector<uint16_t> temp_buf)
 		for (auto& index : temp_buf)
 		{
 			temp = index;
+
 			if((temp>>i)&0x01) even_cnt[i]+=1;//8bit, even
+
 			temp = 0;
 		}
 		if(even_cnt[i]!=0) ChkSum_Data |= (even_cnt[i]%2) * (1<<i);
@@ -340,54 +379,102 @@ uint16_t PGV100::ProcessCheckErr(std::vector<uint16_t> temp_buf)
 }
 
 
+void PGV100::ProcessGetColorInfo()
+{
+	std::vector<uint16_t> temp_buf_ = this->pos_buf_;
+
+	this->color_ = ProcessGetColorInfo(temp_buf_);
+}
+
+
+void PGV100::ProcessGetDirInfo()
+{
+	std::vector<uint16_t> temp_buf_ = this->pos_buf_;
+	uint16_t now_err = ProcessCheckErr(temp_buf_);
+
+	/*Data Process*/
+	if(now_err == Good)
+	{
+		this->dir_ = ProcessGetDirectionInfo(temp_buf_);
+
+		this->err_code_ = now_err;
+
+		FilterCountReset();
+
+		return;
+	}
+
+	/*Error Process*/
+	FilterCountUp();
+
+	if(IsInfoFiltered())
+	{
+		ResetAllData();
+
+		FilterCountReset();
+
+		this->err_code_ = now_err;
+	}
+
+	return;			//Error Exit
+}
+
+void PGV100::ProcessGetPosInfo()
+{
+	std::vector<uint16_t> temp_buf_ = this->pos_buf_;
+	uint16_t now_err = ProcessCheckErr(temp_buf_);
+
+	/*Data Process*/
+	if(now_err == Good)
+	{
+		if(ProcessIsTagDetected(temp_buf_)) this->tagNo_ = ProcessGetTagNumber(temp_buf_);
+
+		else this->tagNo_ = 0;
+
+		this->dir_ = ProcessGetDirectionInfo(temp_buf_);
+
+		this->angle_ = ProcessGetAngleInfo(temp_buf_);			      	 //--- Get ANGLE INFO
+
+		this->xpos_ = ProcessGetXPosInfo(temp_buf_); 	 				  //--- Get X POSITION
+
+		this->ypos_ = ProcessGetYPosInfo(temp_buf_); 					  //--- Get Y POSITION
+
+		this->err_code_ = now_err;
+
+		FilterCountReset();
+
+		return;
+	}
+
+	/*Error Process*/
+	FilterCountUp();
+
+	if(IsInfoFiltered())
+	{
+		ResetAllData();
+
+		FilterCountReset();
+
+		this->err_code_ = now_err;
+	}
+
+	return;			//Error Exit
+}
+
+
 
 //finally we got combined function
 uint16_t PGV100::ProcessGetTotalInfo()
 {
-	//0 .Copying temp. data from received data
-	std::vector<uint16_t> temp_buf_ = this->pos_buf_;
-
-	//1. check color response -> no error check
-	if(max_read_buf_size_ == PGV100Color)  //response for changing colors
-	{
-		this->color_ = ProcessGetColorInfo(temp_buf_);
-		return this->err_code_;
-	}
-
-	//2. Timeout or other error handling
-	uint16_t now_err = ProcessCheckErr(temp_buf_);
-
-	//3. simplized error handle error >=1, good = 0 and if error occur, error count is up
-	//4. when the Error count reached max count, return err code
-	if(now_err >= 1)
-	{
-		FilterCountUp();
-		if(IsInfoFiltered())
-		{
-			ResetAllData();
-			FilterCountReset();
-			this->err_code_ = now_err;
-		}
-		return 1;  //error occur
-	}
-
-	//5. Processing data
+	// Processing data
 	switch(this->max_read_buf_size_)
 	{
-		case PGV100Dir:
-			this->dir_ = ProcessGetDirectionInfo(temp_buf_);
-			break;
-		case PGV100Pos:
-			if(ProcessIsTagDetected(temp_buf_)) this->tagNo_ = ProcessGetTagNumber(temp_buf_);
-			else this->tagNo_ = 0;
-			this->dir_ = ProcessGetDirectionInfo(temp_buf_);
-			this->angle_ = ProcessGetAngleInfo(temp_buf_); 	 			  //--- Get ANGLE INFO
-			this->xpos_ = ProcessGetXPosInfo(temp_buf_); 	 				  //--- Get X POSITION
-			this->ypos_ = ProcessGetYPosInfo(temp_buf_); 					  //--- Get Y POSITION
-			break;
+		case PGV100Color: ProcessGetColorInfo(); break;
+
+		case PGV100Dir: ProcessGetDirInfo(); break;
+
+		case PGV100Pos:	ProcessGetPosInfo(); break;
 	}
-	FilterCountReset();
-	this->err_code_ = now_err;
 	return this->err_code_;
 }
 
@@ -395,6 +482,7 @@ uint16_t PGV100::ProcessGetTotalInfo()
 void PGV100::DriveInit()
 {
 	QueueRepeatPosReqeust();
+
 	ReadBufferInit();
 }
 
@@ -413,14 +501,20 @@ void PGV100::DriveComm()
 void PGV100::DriveAnalysis()
 {
 	ProcessGetTotalInfo();
+
 	QueueDeleteRequest();
 }
 
 //main functions
-void PGV100::Initialization()
+int PGV100::Initialization()
 {
-	RegisterRequsetCmd();
+	RegisterRequestCmd();
+
 	RegisterDefaultParam();
+
+	Drive();
+
+	return this->comm_status_;
 }
 
 

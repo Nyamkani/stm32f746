@@ -5,13 +5,13 @@
 
 # Add inputs and outputs from these tool invocations to the build variables 
 CPP_SRCS += \
-../Core/Module/optical_sensor/pcv80/PCV80.cpp 
+../Core/Module/optical_sensor/pcv80/pcv80.cpp 
 
 OBJS += \
-./Core/Module/optical_sensor/pcv80/PCV80.o 
+./Core/Module/optical_sensor/pcv80/pcv80.o 
 
 CPP_DEPS += \
-./Core/Module/optical_sensor/pcv80/PCV80.d 
+./Core/Module/optical_sensor/pcv80/pcv80.d 
 
 
 # Each subdirectory must supply rules for building sources it contributes
@@ -21,7 +21,7 @@ Core/Module/optical_sensor/pcv80/%.o Core/Module/optical_sensor/pcv80/%.su: ../C
 clean: clean-Core-2f-Module-2f-optical_sensor-2f-pcv80
 
 clean-Core-2f-Module-2f-optical_sensor-2f-pcv80:
-	-$(RM) ./Core/Module/optical_sensor/pcv80/PCV80.d ./Core/Module/optical_sensor/pcv80/PCV80.o ./Core/Module/optical_sensor/pcv80/PCV80.su
+	-$(RM) ./Core/Module/optical_sensor/pcv80/pcv80.d ./Core/Module/optical_sensor/pcv80/pcv80.o ./Core/Module/optical_sensor/pcv80/pcv80.su
 
 .PHONY: clean-Core-2f-Module-2f-optical_sensor-2f-pcv80
 

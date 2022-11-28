@@ -171,8 +171,8 @@ uint16_t SensorManager::CommonSensorGetAllData() const {return this->common_sens
 
 void SensorManager::OpticalSensorInitialize()
 {
-	for (auto& index : pgv100_) index->Initialization();
-	//add pcv 80 or
+	PGV100Register();
+	PCV80Register();
 }
 
 void SensorManager::PGV100Register()
@@ -181,15 +181,14 @@ void SensorManager::PGV100Register()
 	{
 		pgv100_.emplace_back(new PGV100(0x00, RS485, &huart5, GPIOB, GPIO_PIN_0, milimeter_1, 0.0, 0.0, 0.0));
 	}
-
 }
-
 
 bool SensorManager::PGV100Initialize()
 {
 	PGV100Register();
-	OpticalSensorInitialize();
-	PGV100Drive();
+
+	for (auto& index : pgv100_) index->Initialization();
+
 	return PGV100IsErrUp();
 }
 
@@ -253,6 +252,64 @@ void SensorManager::PGV100DirLeft()
 void SensorManager::PGV100DirRight()
 {
 	pgv100_.at(0)->RequestChangeDirright();
+}
+
+
+
+
+
+void SensorManager::PCV80Register()
+{
+	if(pcv80_.empty())
+	{
+		pcv80_.emplace_back(new PCV80(0x00, RS485, &huart6, GPIOB, GPIO_PIN_1, milimeter_1, 0.0, 0.0));
+	}
+}
+
+bool SensorManager::PCV80Initialize()
+{
+	PCV80Register();
+
+	for (auto& index : pcv80_) index->Initialization();
+
+	PCV80Drive();
+
+	return PCV80IsErrUp();
+}
+
+void SensorManager::PCV80Reset()
+{
+	for (auto& index : pcv80_) delete (index);
+	pcv80_.clear();
+	PCV80Register();
+}
+
+
+
+void SensorManager::PCV80Drive()
+{
+	for (auto& index : pcv80_) index->Drive();
+}
+
+
+double SensorManager::PCV80GetXData() const
+{
+	return pcv80_.at(0)->GetXPos();
+}
+
+double SensorManager::PCV80GetYData() const
+{
+	return pcv80_.at(0)->GetYPos();
+}
+
+double SensorManager::PCV80GetErrData() const
+{
+	return pcv80_.at(0)->GetErrStatus();
+}
+
+bool SensorManager::PCV80IsErrUp() const
+{
+	return pcv80_.at(0)->IsErrUp();
 }
 
 

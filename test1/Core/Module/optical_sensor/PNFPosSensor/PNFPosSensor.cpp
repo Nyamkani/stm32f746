@@ -17,21 +17,19 @@ PNFPosSensor::~PNFPosSensor(){};
 //---------------------------------------------------------------send or read functions
 uint16_t PNFPosSensor::TransmitSendRequest()
 {
-	unsigned char temp_data_ =  RequestCmd[RequestQueue.front()];
+	unsigned char temp_data_ =  this->RequestCmd[RequestQueue.front()];
 	unsigned char temp_data_rev = ~temp_data_;
 	unsigned char address_data[3]= {temp_data_, temp_data_rev, 0x00};
 
-	/*If uart direction is available*/
+	/*If Uart direction is available*/
 	if(this->comm_dir_available_ == true) HAL_GPIO_WritePin(this->GPIO_, this->dir_pin_no_, GPIO_PIN_SET);
 
-	if (HAL_UsartTransmit(this->huartx_, address_data, (sizeof(address_data)/sizeof(address_data[0]))) == HAL_OK)
-	{
-		return HAL_OK;
-	}
-	else
+	if(HAL_UsartTransmit(this->huartx_, address_data, (sizeof(address_data)/sizeof(address_data[0]))) != HAL_OK)
 	{
 		return HAL_TIMEOUT;
 	}
+
+	return HAL_OK;
 }
 
 
@@ -39,21 +37,17 @@ uint16_t PNFPosSensor::TransmitReceiveResponse()
 {
 	unsigned char tempdata[this->max_read_buf_size_] = {0,};
 
-	/*If uart direction is available*/
+	/*If Uart direction is available*/
 	if(this->comm_dir_available_ == true) HAL_GPIO_WritePin(this->GPIO_, this->dir_pin_no_, GPIO_PIN_RESET);
 
-	if(HAL_UsartReceive(this->huartx_, tempdata, this->max_read_buf_size_) == HAL_OK)
-	{
-		for(int i = 0; i<this->max_read_buf_size_; i++)
-		{
-			this->pos_buf_.emplace_back(tempdata[i]);
-		}
-		return HAL_OK;
-	}
-	else
+	if(HAL_UsartReceive(this->huartx_, tempdata, this->max_read_buf_size_) != HAL_OK)
 	{
 		return HAL_TIMEOUT;
 	}
+
+	for(int i = 0; i<this->max_read_buf_size_; i++) this->pos_buf_.emplace_back(tempdata[i]);
+
+	return HAL_OK;
 }
 
 
@@ -89,7 +83,6 @@ void PNFPosSensor::FilterCountReset()
 	this->now_filter_cnt_ = 0;
 }
 
-
 //---------------------------------------------------------------public main functions
 bool PNFPosSensor::IsErrUp()
 {
@@ -108,3 +101,4 @@ bool PNFPosSensor::Drive()
 
 	return IsWorkDone();
 }
+

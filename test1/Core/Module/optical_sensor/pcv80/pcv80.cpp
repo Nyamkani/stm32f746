@@ -5,7 +5,7 @@
  *      Author: studio3s
  */
 
-#include <optical_sensor/pcv80/PCV80.h>
+#include <optical_sensor/pcv80/pcv80.h>
 
 //--------------------------------------------------------------------------------------------------class PNFPosSensor:
 //Consturctors
@@ -64,7 +64,7 @@ void PCV80::ResetAllData()
 
 
 //--------------------------------------------------------------Construct level - network, first parmas. declation
-void PCV80::RegisterRequsetCmd()
+void PCV80::RegisterRequestCmd()
 {
 	RequestCmd.reserve(10);
 	RequestCmd.emplace_back(0xA0);   //PCV80 Pos Requeset
@@ -141,46 +141,43 @@ uint16_t PCV80::GetCommtype() const {return comm_type_;}
 uint32_t PCV80::ProcessGetERRInfo(std::vector<uint16_t> temp_buf)
 {
 	uint32_t err_data = (temp_buf)[4];
+
 	(err_data)|=(temp_buf)[3] << 7;
+
 	(err_data)|=(temp_buf)[2] << 14;
+
 	(err_data)|=((temp_buf)[1]&0x07) << 21;
+
 	return err_data;
 }
 
 //for getting data
-bool PCV80::ProcessIsTagDetected(std::vector<uint16_t> temp_buf)
-{
-	if((temp_buf)[1] & 0x40) return true;
-	else return false;
-}
-
 double PCV80::ProcessGetXPosInfo(std::vector<uint16_t> temp_buf)
 {
 	int32_t XPosition_DATA=(temp_buf)[4];
+
 	(XPosition_DATA)|=(temp_buf)[3] << 7;
+
 	(XPosition_DATA)|=(temp_buf)[2] << 14;
+
 	(XPosition_DATA)|=((temp_buf)[1]&0x07) << 21;
 
-	 //for making X-axis center to zero
-	if(XPosition_DATA>=(100000)) XPosition_DATA = (XPosition_DATA-((double)(pow(2,24)-1))-((this->x_offset_)*(this->unit_)));
-	else XPosition_DATA = (XPosition_DATA-((this->x_offset_)*(this->unit_)));
-
+	XPosition_DATA = (XPosition_DATA-((this->x_offset_)*(this->unit_)));
 
 	double xpos = ((XPosition_DATA/(double)(this->unit_)));                   //To make units milimeters to meters
 
 	if(xpos >= this->pos_area_min_ && xpos <= this->pos_area_max_) return xpos;
+
 	else return this->xpos_;  //	  else { state |= 0x0010;} //Out of Range
 }
 
 double PCV80::ProcessGetYPosInfo(std::vector<uint16_t> temp_buf)
 {
 	int32_t YPosition_DATA = (temp_buf)[7];//Y Buf
+
 	(YPosition_DATA) |= ((temp_buf)[6]) << 7;
 
-	//for making Y-axis center to zero
-	if(YPosition_DATA>=(1000))
-	YPosition_DATA = (YPosition_DATA-(16383)) - ((this->y_offset_)*(this->unit_));
-	else YPosition_DATA = (YPosition_DATA-(this->y_offset_*(this->unit_)));
+	YPosition_DATA = (YPosition_DATA-(this->y_offset_*(this->unit_)));
 
 	double ypos = ((YPosition_DATA/(double)(this->unit_)));
 
@@ -205,7 +202,9 @@ uint16_t PCV80::ProcessChecksumData(std::vector<uint16_t> temp_buf)
 		for (auto& index : temp_buf)
 		{
 			temp = index;
+
 			if((temp>>i)&0x01) even_cnt[i]+=1;//8bit, even
+
 			temp = 0;
 		}
 		if(even_cnt[i]!=0) ChkSum_Data |= (even_cnt[i]%2) * (1<<i);
@@ -259,41 +258,45 @@ uint16_t PCV80::ProcessCheckErr(std::vector<uint16_t> temp_buf)
 }
 
 
+void PCV80::ProcessGetPosInfo()
+{
+	std::vector<uint16_t> temp_buf_ = this->pos_buf_;
+	uint16_t now_err = ProcessCheckErr(temp_buf_);
+
+	/*Data Process*/
+	if(now_err == Good)
+	{
+		this->xpos_ = ProcessGetXPosInfo(temp_buf_); 	 				  //--- Get X POSITION
+
+		this->ypos_ = ProcessGetYPosInfo(temp_buf_); 					  //--- Get Y POSITION
+
+		this->err_code_ = now_err;
+
+		FilterCountReset();
+
+		return;
+	}
+
+	/*Error Process*/
+	FilterCountUp();
+
+	if(IsInfoFiltered())
+	{
+		ResetAllData();
+
+		FilterCountReset();
+
+		this->err_code_ = now_err;
+	}
+	return;			//Error Exit
+}
+
 
 //finally we got combined function
 uint16_t PCV80::ProcessGetTotalInfo()
 {
-	//0 .Copying temp. data from received data
-	std::vector<uint16_t> temp_buf_ = this->pos_buf_;
+	ProcessGetPosInfo();
 
-	//1. Timeout or other error handling
-	uint16_t now_err = ProcessCheckErr(temp_buf_);
-
-	//2. simplized error handle error >=1, good = 0 and if error occur, error count is up
-	//3. when the Error count reached max count, return err code
-	if(now_err >= 1)
-	{
-		FilterCountUp();
-		if(IsInfoFiltered())
-		{
-			ResetAllData();
-			FilterCountReset();
-			this->err_code_ = now_err;
-		}
-		return 1;  //error occur
-	}
-
-
-	//4. Processing data
-	switch(this->max_read_buf_size_)
-	{
-		case PCV80Pos:
-			this->xpos_ = ProcessGetXPosInfo(temp_buf_); 	 				  //--- Get X POSITION
-			this->ypos_ = ProcessGetYPosInfo(temp_buf_); 					  //--- Get Y POSITION
-			break;
-	}
-	FilterCountReset();
-	this->err_code_ = now_err;
 	return this->err_code_;
 }
 
@@ -301,6 +304,7 @@ uint16_t PCV80::ProcessGetTotalInfo()
 void PCV80::DriveInit()
 {
 	QueueRepeatPosReqeust();
+
 	ReadBufferInit();
 }
 void PCV80::DriveComm()
@@ -317,14 +321,21 @@ void PCV80::DriveComm()
 void PCV80::DriveAnalysis()
 {
 	QueueDeleteRequest();
+
 	ProcessGetTotalInfo();
 }
 
 //main functions
-void PCV80::Initialization()
+int PCV80::Initialization()
 {
-	RegisterRequsetCmd();
+	RegisterRequestCmd();
+
 	RegisterDefaultParam();
+
+	Drive();
+
+	return this->comm_status_;
 }
+
 
 

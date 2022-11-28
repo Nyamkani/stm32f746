@@ -99,13 +99,18 @@ void DebugDrive()
 		//case '3': SensorManager::GetInstance().PGV100DirRight();/*function 2*/ break;
 		//case '4': SensorManager::GetInstance().PGV100Drive(); break;
 		//case '5': SensorManager::GetInstance().CommonSensorDrive(); break;
+
+		//case '4': SensorManager::GetInstance().PCV80Drive(); break;
+		//case '5': SensorManager::GetInstance().CommonSensorDrive(); break;
+
 		//can test
-		case '1': bg95test.AbsPosCommand(&testpos); break;
-		case '2': bg95test.RelPosCommand(&testpos); break;
-		case '3': bg95test.VelClockCommand(); break;
-		case '4': bg95test.VelCClockCommand(); break;
-		case '5': bg95test.SetPositionMaxLimitCommand(); break;
-		case '6': bg95test.SetMaxVelocityCommand(a_); break;
+		case '1': bg95test.AbsPosCommand(1000, 1000, 1000, 100000); break;
+		case '2': bg95test.RelPosCommand(1000, 1000, 1000, 100000); break;
+		case '3': bg95test.SubVelCommand(200, 1000, 1000); break;
+		case '4': bg95test.SubVelCommand(-200, 1000, 1000); break;
+		case '5': bg95test.SetDirectionNormalCommand(); break;
+		case '6': bg95test.SetDirectionReverseCommand(); break;
+		//case '6': bg95test.SetMaxVelocityCommand(a_); break;
 		case '7': bg95test.Initialization(); break;
 		case '8': bg95test.ClearParamCommand(); break;
 		case '9': bg95test.StopMotorCommand(); break;

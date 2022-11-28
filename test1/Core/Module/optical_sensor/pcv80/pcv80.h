@@ -18,25 +18,12 @@
 #include <optical_sensor/PNFPosSensor/PNFPosSensor.h>
 
 
-enum buffer_length
-{
-	PCV80Pos = 9,
-};
-
-
 enum PCV80_cmd
 {
-	//--------------------------------------------------PGV100 Commands
+	//--------------------------------------------------PCV80 Commands
 	//Write Comm. cmd
-	PCV80PosRequest = 0,                         //for Reqeusting messages    from head to receive POSITON
+	PCV80PosRequest = 0,                         //for Requesting messages    from head to receive POSITON
 };
-
-enum PCV80_unit
-{
-	milimeter_1 = 10,
-	meter_1 = 10000,
-};
-
 
 class PCV80 : public PNFPosSensor
 {
@@ -54,7 +41,7 @@ class PCV80 : public PNFPosSensor
 
 	private:
 		//Limitation
-		int32_t pos_area_max_ = 20000;      // Max. range of tape value                                       // PCV센서 범위 Maximum(mm)
+		int32_t pos_area_max_ = 1000000;      // Max. range of tape value                                       // PCV센서 범위 Maximum(mm)
 		int32_t pos_area_min_ = (-100);   // Min. range of tape value
 
 		//--------------------------------------------------------------------------- Inherited Module
@@ -62,7 +49,7 @@ class PCV80 : public PNFPosSensor
 		void ResetAllData();
 
 		///First Time setup
-		void RegisterRequsetCmd();
+		void RegisterRequestCmd();
 		void RegisterDefaultParam();
 
 		//Initialization for work-loop
@@ -77,8 +64,6 @@ class PCV80 : public PNFPosSensor
 		double ProcessGetYPosInfo(std::vector<uint16_t> temp_buf);
 		uint32_t ProcessGetERRInfo(std::vector<uint16_t> temp_buf);
 
-
-		bool ProcessIsTagDetected(std::vector<uint16_t> temp_buf);
 		uint16_t ProcessGetTagNumber(std::vector<uint16_t> temp_buf);
 		double ProcessGetAngleInfo(std::vector<uint16_t> temp_buf);
 
@@ -89,6 +74,7 @@ class PCV80 : public PNFPosSensor
 		uint16_t ProcessCheckErr(std::vector<uint16_t> temp_buf);
 
 		//Parsing and Get error
+		void ProcessGetPosInfo();
 		uint16_t ProcessGetTotalInfo();
 
 	public:
@@ -123,7 +109,7 @@ class PCV80 : public PNFPosSensor
 
 	public:
 		//main functions
-		void Initialization() override;
+		int Initialization() override;
 };
 
 
