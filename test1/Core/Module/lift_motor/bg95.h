@@ -30,10 +30,27 @@
 
 
 
-enum bg95_err_code
+enum bg95_status
 {
 	initfailed = 0,
-
+	initdone = 1,
+	send_ready = 2,
+	send_failed= 3,
+	recv_ready = 4,
+	recv_failed = 5,
+	analysis_ready = 6,
+	adnalysis_failed = 7,
+	error = 10,
+};
+enum nodeid_reference
+{
+	NMT_id = 0x00,
+	abort_id = 0x80,
+	PDO_toHost = 0x180,
+	PDO_toNode = 0x200,
+	SDO_reading_id = 0x580,
+	SDO_sending_id = 0x600,
+	EMG_id = 0x700,
 };
 
 
@@ -68,7 +85,14 @@ class BG95
 		uint16_t nodeid_ = 127;
 
 		int err_code_ = 0;
-		bool comm_status_ = true;
+		bool is_init = false;
+		bool is_send_ready = false;
+		int comm_status_ = send_ready;
+		uint32_t comm_timestamp = 0;
+		uint32_t comm_timeout = 150;  //ms
+		int comm_num_try = 0;
+		int comm_max_try = 2;
+
 
 		//-----------------------------------------------------------Dunkor params
 		//Dunkor can comm. Device Parameters.
@@ -84,11 +108,11 @@ class BG95
 
 		//Only Read parameters
 		uint32_t motor_voltage_;	//mV
-		int32_t motor_current_;		//mA
+		int32_t motor_current_;	//mA
 
-		int32_t motor_pos_;			//present postiion
-		int32_t target_pos_; 		//target position
-		int32_t motor_vel_;			//rpm
+		int32_t motor_pos_;	//present postiion
+		int32_t target_pos_; //target position
+		int32_t motor_vel_;	//rpm
 
 		//device status
 		uint32_t stat_reg_;
@@ -99,11 +123,13 @@ class BG95
 		int32_t max_vel_ = 3000;
 		int32_t drive_vel_ = 1000;
 		int motor_dir_ = 0x00;
-		bool can_lock_ = false;
 
 		//queue(vector)
 		std::vector<CAN_WData_HandleTypeDef> AsyncRequestQueue;
 		std::vector<CAN_WData_HandleTypeDef> RequestQueue;
+
+		//Send data Buffer
+		CAN_WData_HandleTypeDef send_data_buffer;
 
 		//Receive data
 		std::vector<CAN_RData_HandleTypeDef> ReceiveQueue;
@@ -121,25 +147,39 @@ class BG95
 		void AsyncQueueSaveRequest(CAN_WData_HandleTypeDef cmd);
 		void QueueSaveRequest(CAN_WData_HandleTypeDef cmd);
 		void QueueDeleteRequest();
+		bool IsAsyncRequestQueueEmpty();
+		bool IsRequestQueueEmpty();
 
 		void QueueSaveReceive(CAN_RData_HandleTypeDef cmd);
 		void QueueDeleteReceive();
+		bool IsReceiveQueueEmpty();
+		void QueueChangeReceive();
+
 
 
 		void WriteDataEnqueue(int index, int subindex, int data);
 		void AsyncWriteDataEnqueue(int index, int subindex, int data);
 		void ReadDataEnqueue(int index, int subindex);
 
-		void HAL_CAN_Initialization();
-		void HAL_CAN_DeInitialization();
+		bool HAL_CAN_Initialization();
+		bool HAL_CAN_DeInitialization();
 		void DataBufferInit();
 
+		void SendProcess();
+		void RecvProcess();
 
 		void DriveInit();
 		void DriveComm();
 		void DriveAnalysis();
 
-		void DataAnalysis();
+		bool CheckReceivedReadFunction();
+		void CheckReceivedNodeId();
+		bool CheckCommandData();
+
+
+
+		bool DataAnalysis();
+		void RecvDataProcess();
 		void DataProcess(int index, int subindex, int data);
 
 

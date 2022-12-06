@@ -19,8 +19,6 @@ BG95::BG95(CAN_HandleTypeDef *hcanx, int nodeid) // @suppress("Class members sho
 {
 	this->hcanx_ = hcanx;
 	this->nodeid_ = nodeid;
-	//this->Txid_ = Txid;
-	//this->Rxid_ = Rxid;
 }
 
 // TODO Auto-generated destructor stub.
@@ -40,8 +38,9 @@ uint16_t BG95::TransmitSendRequest()
 	uint32_t TxMailbox;
 	uint8_t state = HAL_ERROR;
 
-	if(!(AsyncRequestQueue.empty())) {temp_DATA =  AsyncRequestQueue.front();}
-	else if(!(RequestQueue.empty())) {temp_DATA =  RequestQueue.front();}
+	if(!(IsAsyncRequestQueueEmpty())) {temp_DATA =  AsyncRequestQueue.front();}
+	else if(!(IsRequestQueueEmpty())) {temp_DATA =  RequestQueue.front();}
+	else return HAL_ERROR;
 
 	/* Configure Transmission process */
 	TxHeader.StdId = this->nodeid_ + temp_DATA.txid_;                 // Standard Identifier, 0 ~ 0x7FF
@@ -57,14 +56,8 @@ uint16_t BG95::TransmitSendRequest()
 	/*request transmission of a message*/
 	state = HAL_CANTransmit(this->hcanx_, &TxHeader, (unsigned char*)TxData,  &TxMailbox);
 
-	/* Monitor the Tx mailboxes availability until at least one Tx mailbox is free*/
-	while(HAL_CAN_GetTxMailboxesFreeLevel(this->hcanx_) != 3);
-
-	//waiting for message to leave
-	while((HAL_CAN_IsTxMessagePending((this->hcanx_) , TxMailbox)));
-
-	//waiting for transmission request to be completed by checking RQCPx
-	while( !(hcanx_->Instance->TSR & ( 0x1 << (7 * ( TxMailbox - 1 )))));
+	/*to verify receive data*/
+	if(state == HAL_OK)	this->send_data_buffer = temp_DATA;
 
 	return state;
 }
@@ -79,16 +72,7 @@ uint16_t BG95::TransmitReceiveResponse()
 	CAN_RData_HandleTypeDef cal_data;
 
 	/* Configure Receive process */
-	//state = HAL_CANReceive(hcanx_, &RxHeader, (unsigned char*)RxData);
-
-	/* Monitoring queue until at least one message is received */
-	//if(HAL_CAN_GetRxFifoFillLevel(this->hcanx_, CAN_RX_FIFO0) == 0) return HAL_ERROR;
-	//while(HAL_CAN_GetRxFifoFillLevel(this->hcanx_, CAN_RX_FIFO0) != 1)
-
-	/* Configure Receive process */
 	state = HAL_CANReceive(this->hcanx_, &RxHeader, (unsigned char*)RxData);
-
-
 
 	/*if data is vaild*/
 	if(state == HAL_OK)
@@ -134,7 +118,7 @@ void BG95::WriteDataEnqueue(int index, int subindex, int data)
 	}
 
 	/*input the data to buffer*/
-	cal_data.txid_ = 0x600;   //SDO
+	cal_data.txid_ = SDO_sending_id;   //SDO
 	cal_data.data_length_ = 8;
 
 	cal_data.write_Data_Byte_[0] = txid;    					//command byte(4bytes fixed)
@@ -174,7 +158,7 @@ void BG95::AsyncWriteDataEnqueue(int index, int subindex, int data)
 	}
 
 	/*input the data to buffer*/
-	cal_data.txid_ = 0x600;
+	cal_data.txid_ = SDO_sending_id;
 	cal_data.data_length_ = 8;
 
 	cal_data.write_Data_Byte_[0] = txid;    					//command byte(4bytes fixed)
@@ -196,51 +180,193 @@ void BG95::ReadDataEnqueue(int index, int subindex)
 	int index_ = index;
 
 	/*input the data to buffer*/
-	cal_data.txid_ = 0x600;
+	cal_data.txid_ = SDO_sending_id;
 	cal_data.data_length_ = 8;
 
 	cal_data.write_Data_Byte_[0] = 0x40;    					//command byte(4bytes fixed)
 	cal_data.write_Data_Byte_[1] = (index_ & 0xff);				//Object Index (lsb)
-	cal_data.write_Data_Byte_[2] = ((index_ >> 8) & 0xff);		//Object Index (msb)
+	cal_data.write_Data_Byte_[2] = ((index_ >> 8) & 0xff);		// Object Index (msb)
 	cal_data.write_Data_Byte_[3] = subindex;					//sub Index
 
 	/*Register data from buffer*/
 	QueueSaveRequest(cal_data);
 }
 
-/*this function is just hardcode. not a final version*/
-void BG95::DataAnalysis()
+
+
+void BG95::AsyncQueueSaveRequest(CAN_WData_HandleTypeDef cmd){this->AsyncRequestQueue.push_back(cmd);}
+
+void BG95::QueueSaveRequest(CAN_WData_HandleTypeDef cmd){this->RequestQueue.push_back(cmd);}
+
+void BG95::QueueDeleteRequest()
 {
-	//1.check Receive queue
-	if((ReceiveQueue.empty())) return;
-
-	CAN_RData_HandleTypeDef recv_data = ReceiveQueue.front();
-	int index = 0;
-	int subindex = 0;
-	int data = 0;
-
-	//2.check commandbyte is matched(sdo)
-	if(recv_data.rxid_ != (this->nodeid_ + 0x580) ) return;
-
-	//3.only check read function for now
-	if(!( recv_data.read_Data_Byte_[0] >= 0x40 && recv_data.read_Data_Byte_[0] <= 0x4f )) return;
-
-	//4. revert index byte
-	index |= recv_data.read_Data_Byte_[1];
-	index |= recv_data.read_Data_Byte_[2] * 0x100 ;
-
-	//5.revert sub-index byte
-	subindex = recv_data.read_Data_Byte_[3];
-
-	//6.revert data byte
-	//for(int i = 4; i <= 7; i++) data << (8 * (i - 4)) |=  recv_data.read_Data_Byte_[i];
-
-	data = recv_data.read_Data_Byte_[4] + (recv_data.read_Data_Byte_[5]*0x100) +
-			(recv_data.read_Data_Byte_[6] * 0x10000) + (recv_data.read_Data_Byte_[7]*0x1000000);
-
-	DataProcess(index, subindex, data);
-
+	/*temporary code*/
+	if(!(AsyncRequestQueue.empty())) {this->AsyncRequestQueue.erase(AsyncRequestQueue.begin());}
+	else {if(!(RequestQueue.empty())) {this->RequestQueue.erase(RequestQueue.begin());}}
 }
+
+
+void BG95::QueueSaveReceive(CAN_RData_HandleTypeDef cmd){this->ReceiveQueue.push_back(cmd);}
+void BG95::QueueDeleteReceive()
+{
+	if(!(ReceiveQueue.empty())) {this->ReceiveQueue.erase(ReceiveQueue.begin());}
+}
+void BG95::QueueChangeReceive()
+{
+	if(ReceiveQueue.size() >= 2)
+	{
+		//1. duplicate recv queue front data
+		CAN_RData_HandleTypeDef temp_Data = ReceiveQueue.front();
+
+		//2. delete front data
+		QueueDeleteReceive();
+
+		//3. push back to recv queue
+		QueueSaveReceive(temp_Data);
+	}
+}
+
+
+
+
+bool BG95::IsAsyncRequestQueueEmpty() {return AsyncRequestQueue.empty();}
+bool BG95::IsRequestQueueEmpty() {return RequestQueue.empty();}
+bool BG95::IsReceiveQueueEmpty() {return ReceiveQueue.empty();}
+
+
+
+//--------------------------------------------------------------------initialization
+bool BG95::HAL_CAN_Initialization()
+{
+	/* CAN Start */
+	return HAL_CAN_Start(this->hcanx_) != HAL_OK;
+}
+
+bool BG95::HAL_CAN_DeInitialization()
+{
+	/* CAN Stop */
+	return HAL_CAN_Stop(this->hcanx_) != HAL_OK;
+}
+
+//--------------------------------------------------------------------Drive
+void BG95::SendProcess()
+{
+	//1. Check ready for sending
+	if(!(this->is_send_ready)) return;
+
+	//2. Check CAN comm. sending failed
+	if(TransmitSendRequest()) return;
+
+	//3. flag off
+	this->is_send_ready = false;
+
+	//4. time-stamp recode
+	this->comm_timestamp = HAL_GetTick();
+
+	return;
+}
+
+void BG95::RecvProcess()
+{
+	//when the write command send
+	if((!(this->is_send_ready)))
+	{
+		if((HAL_GetTick() - this->comm_timestamp) >= this->comm_timeout)
+		{
+			(this->comm_num_try)++;
+
+			this->is_send_ready = true;
+
+			return;
+		}
+
+		//1. Check CAN comm. Receiving success or not
+		if(TransmitReceiveResponse()) return;
+
+		//1-1. verify receiving data
+		if(!(DataAnalysis())) return;
+
+	}
+	else
+	{
+		//1. Check CAN comm. Receiving success or not
+		if(TransmitReceiveResponse()) return;
+	}
+
+
+
+	/*send,receive data is successfully matched*/
+	RecvDataProcess();
+
+	//2. Delete request & receive queue
+
+	QueueDeleteRequest();
+
+	QueueDeleteReceive();
+
+	//3. add read data queue
+	if(IsRequestQueueEmpty() & IsRequestQueueEmpty()) ReadSchduleCommandEnqueue();
+
+	//4. restore send flag
+	this->is_send_ready = true;
+
+	return;
+}
+
+//--------------------------------------------------------------------Data Analysis Drive
+void BG95::CheckReceivedNodeId()
+{
+	/*receive */
+	int id = ReceiveQueue.front().rxid_ - this->nodeid_;
+
+	switch(id)
+	{
+		//case NMT_id: break;     //ignored
+
+		//case abort_id: break;	//aborted -> CAN comm. error
+
+		case SDO_reading_id: break; //SDO mode normal id
+
+		case PDO_toHost: break;	//PDO mode normal id
+
+		//case EMG_id: break; //ignored
+
+		default: /*error*/ break;
+	}
+}
+
+bool BG95::CheckReceivedReadFunction()
+{
+	CAN_RData_HandleTypeDef recv_data = ReceiveQueue.front();
+
+	if(!( (recv_data.read_Data_Byte_[0] >= 0x40 && recv_data.read_Data_Byte_[0] <= 0x4f ) ||
+			recv_data.read_Data_Byte_[0] == 0x60 ) || (recv_data.read_Data_Byte_[0] == 0x80))
+		{
+			return false;
+		}
+
+	return true;
+}
+
+
+bool BG95::CheckCommandData()
+{
+	CAN_WData_HandleTypeDef write_temp_data  = send_data_buffer;
+	CAN_RData_HandleTypeDef read_temp_data = ReceiveQueue.front();
+
+	for (int count = 1; count <= 2 ; count++)
+	{
+		if(write_temp_data.write_Data_Byte_[count] != read_temp_data.read_Data_Byte_[count])
+		{
+			QueueChangeReceive();
+
+			return false;
+		}
+	}
+
+	return true;
+}
+
 
 void BG95::DataProcess(int index, int subindex, int data)
 {
@@ -277,83 +403,47 @@ void BG95::DataProcess(int index, int subindex, int data)
 	}
 }
 
-
-void BG95::AsyncQueueSaveRequest(CAN_WData_HandleTypeDef cmd){this->AsyncRequestQueue.push_back(cmd);}
-
-void BG95::QueueSaveRequest(CAN_WData_HandleTypeDef cmd){this->RequestQueue.push_back(cmd);}
-void BG95::QueueDeleteRequest()
+void BG95::RecvDataProcess()
 {
-	/*temporary code*/
-	if(!(AsyncRequestQueue.empty())) {this->AsyncRequestQueue.erase(AsyncRequestQueue.begin());}
-	else {if(!(RequestQueue.empty())) {this->RequestQueue.erase(RequestQueue.begin());}}
+	CAN_RData_HandleTypeDef recv_data = ReceiveQueue.front();
+	int index = 0;
+	int subindex = 0;
+	int data = 0;
 
+	//4. revert index byte
+	index |= recv_data.read_Data_Byte_[1];
+	index |= (int)recv_data.read_Data_Byte_[2] << 8;
+
+	//5.revert sub-index byte
+	subindex = recv_data.read_Data_Byte_[3];
+
+	//6.revert data byte
+	for(int i = 4; i <= 7; i++) data  |=  (int)recv_data.read_Data_Byte_[i] << (8 * (i - 4));
+
+	//7. Data Processing
+	DataProcess(index, subindex, data);
+
+	return;
 }
 
 
-void BG95::QueueSaveReceive(CAN_RData_HandleTypeDef cmd){this->ReceiveQueue.push_back(cmd);}
-void BG95::QueueDeleteReceive()
+/*this function is just hardcoded. not a final version*/
+bool BG95::DataAnalysis()
 {
-	if(!(ReceiveQueue.empty())) {this->ReceiveQueue.erase(ReceiveQueue.begin());}
+	//1. Check Node id
+	CheckReceivedNodeId();
+
+	//2.Check read function code
+	if(!(CheckReceivedReadFunction())) return false;
+
+	//3.1 check both command codes
+	if(!(CheckCommandData())) return false;
+
+	return true;
 }
 
 
 
-
-//--------------------------------------------------------------------initialization
-void BG95::HAL_CAN_Initialization()
-{
-	/* Can Start */
-	if ((HAL_CAN_Start(this->hcanx_) != HAL_OK))
-	{
-		this->err_code_ = initfailed;
-	}
-}
-
-void BG95::HAL_CAN_DeInitialization()
-{
-	if (HAL_CAN_Stop(this->hcanx_) != HAL_OK){} //this->err_code_ = initfailed;
-}
-
-
-//--------------------------------------------------------------------Drive
-void BG95::DriveInit()
-{
-	/*test read function*/
-	if(RequestQueue.empty()) ReadSchduleCommandEnqueue();
-}
-
-
-void BG95::DriveComm()
-{
-
-	if(TransmitSendRequest()!=HAL_OK)
-	{
-		this->comm_status_ = false;
-	}
-	else
-	{
-		this->comm_status_ = true;
-		//can_lock_ = true;
-	}
-
-	if(TransmitReceiveResponse()!=HAL_OK)
-	{
-		this->comm_status_ = false;
-	}
-	else
-	{
-		this->comm_status_ = true;
-		//can_lock_ = false;
-	}
-}
-
-void BG95::DriveAnalysis()
-{
-	DataAnalysis();
-	QueueDeleteRequest();
-	QueueDeleteReceive();
-	//ProcessGetTotalInfo();
-}
 
 
 //--------------------------------------------------------------------Applications
@@ -363,25 +453,34 @@ void BG95::Initialization()
 {
 	InitializeCommand();
 
-	HAL_CAN_Initialization();
+	if(HAL_CAN_Initialization()) this->is_init = true;
+
+	return;
 }
 
 void BG95::DeInitialization()
 {
-	HAL_CAN_DeInitialization();
-	//RegisterRequsetCmd();
-	//RegisterDefaultParam();
+	AsyncRequestQueue.clear();
 
+	RequestQueue.clear();
+
+	ReceiveQueue.clear();
+
+	if(HAL_CAN_DeInitialization()) this->is_init = false;
+
+	return;
 }
 
 
 void BG95::Drive()
 {
-	DriveInit();
+	if(!(this->is_init)) return;
 
-	DriveComm();
+	SendProcess();
 
-	DriveAnalysis();
+	RecvProcess();
+
+	return;
 }
 
 
