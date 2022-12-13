@@ -60,13 +60,12 @@ enum nodeid_reference
 
 enum CAN_Error_status
 {
-	HAL_OK = 0,
-	HAL_ERROR = 1,
-	HAL_BUSY = 2,
-	HAL_TIMEOUT = 3,
-	GENERAL_TIMEOUT = 0x04,
+	//HAL_OK = 0,
+	//HAL_ERROR = 1,
+	//HAL_BUSY = 2,
+	//HAL_TIMEOUT = 3,
+	Recv_TIMEOUT = 0x04,
 };
-
 
 
 
@@ -106,10 +105,13 @@ class BG95
 		//CAN_FilterTypeDef  sFilterConfig;
 		uint16_t nodeid_ = 127;
 
-		bool is_init_;
-		bool is_run_;
-		bool is_err_;
-		bool is_send_ready_;
+		//device software status
+		bool is_init_ = false;
+		bool is_run_ = false;
+		bool is_err_ = false;
+
+		//device communication status
+		bool is_send_ready_ = false;
 		int CAN_status_;
 		int CAN_status_filter;
 		uint32_t comm_timestamp_ = 0;
@@ -210,7 +212,7 @@ class BG95
 		bool CheckReceivedReadFunction();
 		void CheckReceivedNodeId();
 		bool CheckCommandData();
-
+		void CheckCANState();
 
 
 		bool DataAnalysis();
@@ -218,8 +220,11 @@ class BG95
 		void DataProcess(int index, int subindex, int data);
 
 
+		void StatusCheck();
+
+
 	public:
-		void Initialization();
+		bool Initialization();
 		void DeInitialization();
 		void Drive();
 
@@ -288,6 +293,11 @@ class BG95
 		void ResetPositionCommand();
 		void ResetErrorCommand();
 
+
+		//Internal Status Check
+		const bool IsInitTrue();
+		const bool IsRunTrue();
+		const bool IsErrTrue();
 
 		//read status functions
 		const bool IsPowerUp();
