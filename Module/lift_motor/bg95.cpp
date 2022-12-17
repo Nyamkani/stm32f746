@@ -46,14 +46,21 @@ void BG95::IntializeParameters()
 
 
 	//device status
-	this->comm_stat_reg_ = 0;
-	this->comm_err_data_ = 0;
+	this->comm_stat_reg_ = COMM_OK;
 	this->dev_stat_reg_ = 0;
 	this->dev_err_data_ = 0;
+	this->module_error_data_ = 0;
 
 	this->is_init_ = false;
 	this->is_run_= false;
+	this->is_err_ = false;
 	this->is_send_ready_ = false;
+
+	AsyncRequestQueue.clear();
+
+	RequestQueue.clear();
+
+	ReceiveQueue.clear();
 
 	return;
 }
@@ -61,30 +68,25 @@ void BG95::IntializeParameters()
 bool BG95::HAL_CAN_Initialization()
 {
 	/* CAN Start */
-	return !(HAL_CAN_Start(this->hcanx_));
+	return (HAL_CAN_Start(this->hcanx_));
 }
 
 bool BG95::HAL_CAN_DeInitialization()
 {
 	/* CAN Stop */
-	return !(HAL_CAN_Stop(this->hcanx_));
+	return (HAL_CAN_Stop(this->hcanx_));
 }
 
 
 
 //--------------------------------------------------------------------send or read function
-uint16_t BG95::TransmitSendRequest()
+uint16_t BG95::SendRequest()
 {
 	CAN_TxHeaderTypeDef TxHeader;
 	uint8_t TxData[8] = {0,};
 	uint32_t TxMailbox;
 	uint8_t state = HAL_ERROR;
-
-	/*Get the high priority queue data*/
-	uint8_t send_queue_type = SelectSendQueueType();
-
-	/*Exit when Queue is empty*/
-	if(send_queue_type == none)  return HAL_OK;
+	uint8_t send_queue_type = this->send_queue_type_;
 
 	/*get the sending data*/
 	CAN_WData_HandleTypeDef temp_DATA = SelectSendQueueData(send_queue_type);
@@ -106,29 +108,26 @@ uint16_t BG95::TransmitSendRequest()
 	/*to verify receive data*/
 	if(state == HAL_OK)
 	{
-		this->send_queue_type_ = send_queue_type;
-
 		this->send_data_buffer = temp_DATA;
 	}
 
-	this->CAN_status_ = state;
+	/*Store current state*/
+	this->comm_stat_reg_ |= state;
 
 	return state;
 }
 
-uint16_t BG95::TransmitReceiveResponse()
+uint16_t BG95::RecvResponse()
 {
 	CAN_RxHeaderTypeDef RxHeader;
-
+	CAN_RData_HandleTypeDef cal_data;
 	uint8_t RxData[8] = {0,};
 	uint8_t state = HAL_ERROR;
-
-	CAN_RData_HandleTypeDef cal_data;
 
 	/* Configure Receive process */
 	state = HAL_CANReceive(this->hcanx_, &RxHeader, (unsigned char*)RxData);
 
-	/*if data is vaild*/
+	/*if data is valid*/
 	if(state == HAL_OK)
 	{
 		cal_data.rxid_ = RxHeader.StdId;
@@ -140,7 +139,8 @@ uint16_t BG95::TransmitReceiveResponse()
 		QueueSaveReceive(cal_data);
 	}
 
-	this->CAN_status_ = state;
+	/*Store current state*/
+	this->comm_stat_reg_ |= state;
 
 	return state;
 }
@@ -158,7 +158,6 @@ void BG95::WriteDataEnqueue(int index, int subindex, int data)
 	int data_size_  = 0;
 
 	/*to check data byte size*/
-
 	if(data_ > 0xffff || data_< 0) { data_size_ = 4;}
 	else if(data_ > 0xff) {data_size_ = 2;}
 	else { data_size_ = 1;}
@@ -187,6 +186,8 @@ void BG95::WriteDataEnqueue(int index, int subindex, int data)
 
 	/*Register data from buffer*/
 	QueueSaveRequest(cal_data);
+
+	return;
 }
 
 void BG95::AsyncWriteDataEnqueue(int index, int subindex, int data)
@@ -227,6 +228,8 @@ void BG95::AsyncWriteDataEnqueue(int index, int subindex, int data)
 
 	/*Register data from buffer*/
 	AsyncQueueSaveRequest(cal_data);
+
+	return;
 }
 
 void BG95::ReadDataEnqueue(int index, int subindex)
@@ -246,6 +249,8 @@ void BG95::ReadDataEnqueue(int index, int subindex)
 
 	/*Register data from buffer*/
 	QueueSaveRequest(cal_data);
+
+	return;
 }
 
 
@@ -253,11 +258,15 @@ void BG95::ReadDataEnqueue(int index, int subindex)
 
 int BG95::SelectSendQueueType()
 {
-	if(!(IsAsyncRequestQueueEmpty())) {return bg95_send_type::async;}
+	int queue_type;
 
-	else if(!(IsRequestQueueEmpty())) {return bg95_send_type::sync;}
+	if(!(IsAsyncRequestQueueEmpty())) {queue_type = async;}
 
-	return bg95_send_type::none;
+	else if(!(IsRequestQueueEmpty())) {queue_type = sync;}
+
+	this->send_queue_type_ = queue_type;
+
+	return this->send_queue_type_;
 }
 
 CAN_WData_HandleTypeDef BG95::SelectSendQueueData(int type)
@@ -275,26 +284,38 @@ CAN_WData_HandleTypeDef BG95::SelectSendQueueData(int type)
 	return WData_HandleType;
 }
 
+void BG95::AsyncQueueSaveRequest(CAN_WData_HandleTypeDef cmd)
+{
+	if(this->is_run_) this->AsyncRequestQueue.push_back(cmd);
 
-
-void BG95::AsyncQueueSaveRequest(CAN_WData_HandleTypeDef cmd){this->AsyncRequestQueue.push_back(cmd);}
+	return;
+}
 
 void BG95::QueueSaveRequest(CAN_WData_HandleTypeDef cmd){this->RequestQueue.push_back(cmd);}
 
 void BG95::QueueDeleteRequest()
 {
-	/*temporary code*/
-	if(!(AsyncRequestQueue.empty())) {this->AsyncRequestQueue.erase(AsyncRequestQueue.begin());}
-	else {if(!(RequestQueue.empty())) {this->RequestQueue.erase(RequestQueue.begin());}}
-}
+	int queue_type = this->send_queue_type_;
 
+	switch(queue_type)
+	{
+		case async: this->AsyncRequestQueue.erase(AsyncRequestQueue.begin()); break;
+
+		case sync: this->RequestQueue.erase(RequestQueue.begin()); break;
+	}
+
+	return ;
+}
 
 void BG95::QueueSaveReceive(CAN_RData_HandleTypeDef cmd){this->ReceiveQueue.push_back(cmd);}
 
 void BG95::QueueDeleteReceive()
 {
 	if(!(ReceiveQueue.empty())) {this->ReceiveQueue.erase(ReceiveQueue.begin());}
+
+	return;
 }
+
 void BG95::QueueChangeReceive()
 {
 	if(ReceiveQueue.size() >= 2)
@@ -308,9 +329,9 @@ void BG95::QueueChangeReceive()
 		//3. push back to recv queue
 		QueueSaveReceive(temp_Data);
 	}
+
+	return;
 }
-
-
 
 
 bool BG95::IsAsyncRequestQueueEmpty() {return AsyncRequestQueue.empty();}
@@ -320,15 +341,18 @@ bool BG95::IsRequestQueueEmpty() {return RequestQueue.empty();}
 bool BG95::IsReceiveQueueEmpty() {return ReceiveQueue.empty();}
 
 
+
+
+//--------------------------------------------------------------Check Timeout function
 //Process Condition functions
 bool BG95::IsSendTickReached()
 {
-	if(++(this->drive_tick) <= 10 )
+	if(++(this->drive_tick_) <= 5 )
 	{
 		return true;
 	}
 
-	this->drive_tick = 0;
+	this->drive_tick_ = 0;
 
 	return false;
 }
@@ -341,88 +365,29 @@ bool BG95::IsRecvTimedOut()
 		return true;
 	}
 
-	if(((this->comm_num_try)++) <= (this->comm_max_try))
+	if(((this->comm_num_try_)++) <= (this->comm_max_try_))
 	{
 		/*timeout error*/
-		this->CAN_status_ = Recv_GENERAL_TIMEOUT;
+		this->comm_stat_reg_ |= COMM_RECV_TIMEOUT;
 	}
 
 	return false;
 }
 
-
-//--------------------------------------------------------------------Drive
-void BG95::SendProcess()
-{
-	//0. the tick check
-	if(!(IsSendTickReached())) return;
-
-	//1. Check ready for sending
-	if(!(this->is_send_ready_)) return;
-
-	//2. Check Queue is empty
-	if(IsAsyncRequestQueueEmpty() & IsRequestQueueEmpty()) return;
-
-	//3. Check CAN comm. sending failed, Only Accept HAL_OK
-	if(TransmitSendRequest()!= HAL_OK) return;
-
-	//4. flag off
-	this->is_send_ready_ = false;
-
-	//5. time-stamp recode
-	this->comm_timestamp_ = HAL_GetTick();
-
-	return;
-}
-
-void BG95::RecvProcess()
-{
-	//when the write command send
-	if((!(this->is_send_ready_)))
-	{
-		//0. check timeed out
-		if(!(IsRecvTimedOut())) return;
-
-		//1. Check CAN comm. Receiving success or not
-		if(TransmitReceiveResponse() == HAL_ERROR) return;
-
-		//1-1. verify receiving data
-		if(!(DataAnalysis())) return;
-
-		//1-2. Set flag to true
-		this->is_send_ready_ = true;
-	}
-	else
-	{
-		//1. Check CAN comm. Receiving success or not
-		if(TransmitReceiveResponse() == HAL_ERROR) return;
-	}
-
-	/*send,receive data is successfully matched*/
-	RecvDataProcess();
-
-	//2. Delete request & receive queue
-	QueueDeleteRequest();
-
-	QueueDeleteReceive();
-
-	//3. add read data queue
-	if(IsRequestQueueEmpty() & IsRequestQueueEmpty()) ReadSchduleCommandEnqueue();
-
-	return;
-}
-
-//--------------------------------------------------------------------Data Analysis Drive
+//--------------------------------------------------------------------Check Data Analysis Drive
 void BG95::CheckReceivedNodeId()
 {
 	/*receive */
 	int id = ReceiveQueue.front().rxid_ - this->nodeid_;
 
+	if(id == abort_id) this->comm_stat_reg_ |= CAN_ABORT_ERROR;
+
+	/*
 	switch(id)
 	{
 		//case NMT_id: break;     //ignored
 
-		//case abort_id: break;	//aborted -> CAN comm. error
+		case abort_id: this->comm_stat_reg_ = CAN_ABORT_ERROR break;	//aborted -> CAN comm. error
 
 		case SDO_reading_id: break; //SDO mode normal id
 
@@ -430,8 +395,10 @@ void BG95::CheckReceivedNodeId()
 
 		//case EMG_id: break; //ignored
 
-		default: /*error*/ break;
+		default:  break;
 	}
+  */
+	return;
 }
 
 bool BG95::CheckReceivedReadFunction()
@@ -450,39 +417,26 @@ bool BG95::CheckReceivedReadFunction()
 
 bool BG95::CheckCommandData()
 {
-	CAN_WData_HandleTypeDef write_temp_data  = send_data_buffer;
+	//compare the data
+	CAN_WData_HandleTypeDef write_temp_data  = this->send_data_buffer;
 	CAN_RData_HandleTypeDef read_temp_data = ReceiveQueue.front();
+
+	//exception case
+	if((read_temp_data.read_Data_Byte_[1] = 0x01) & (read_temp_data.read_Data_Byte_[2] = 0x30))
+	{
+		return true;
+	}
 
 	for (int count = 1; count <= 2 ; count++)
 	{
 		if(write_temp_data.write_Data_Byte_[count] != read_temp_data.read_Data_Byte_[count])
 		{
-			QueueChangeReceive();
-
 			return false;
 		}
 	}
 
 	return true;
 }
-
-void BG95::CheckCANState()
-{
-	if(this->CAN_status_ != HAL_OK)
-	{
-		(this->CAN_status_filter)++;
-	}
-
-	if(this->CAN_status_filter >= 5)
-	{
-		this->is_run_ = false;
-	}
-
-	return;
-}
-
-
-
 
 void BG95::DataProcess(int index, int subindex, int data)
 {
@@ -551,16 +505,175 @@ bool BG95::DataAnalysis()
 	CheckReceivedNodeId();
 
 	//2.Check read function code
-	if(!(CheckReceivedReadFunction())) return false;
+	//if(!(CheckReceivedReadFunction())) return false;
 
-	//3.1 check both command codes
-	if(!(CheckCommandData())) return false;
+	//3. check both command codes
+	if(!(CheckCommandData()))
+	{
+		QueueChangeReceive();
+
+		return false;
+	}
+
+	return true;
+}
+
+//--------------------------------------------------------------------Error Checks
+
+
+void BG95::CommErrorCheck()
+{
+	int status = this->comm_stat_reg_;
+	bool err_up = false;
+
+	switch(status)
+	{
+		case COMM_OK: (this->comm_status_filter) = 0; break;
+
+		case COMM_RECV_TIMEOUT: err_up = true; break;
+
+		case CAN_ABORT_ERROR: err_up = true; break;
+
+		default:
+
+			if(++(this->comm_status_filter) <= 5)
+			{
+				err_up = true;
+			}
+
+			break;
+	}
+
+	this->is_err_ = err_up;
+
+	return;
+}
+
+void BG95::ModuleErrorCheck()
+{
+	int error_data = 0;
+
+	//0 . Device error check
+	if(IsMotorErrUp()) error_data = 0x10000 + GetMotorErrData();
+
+	//1. Comm. error check
+	else if(IsErrTrue()) error_data = 0x20000 + this->comm_stat_reg_;
+
+	this->module_error_data_ = error_data;
+
+	return;
+}
+
+//--------------------------------------------------------------------Drive
+bool BG95::DriveCheck()
+{
+	//0. if init is false -> go return
+	if(!(IsInitTrue())) return false;
+
+	//1. if Init is true, and run is false -> wait for empty queue
+	if(!(IsRunTrue()))
+	{
+		if(!(IsRequestQueueEmpty()))
+		{
+			this->is_run_ = true;
+		}
+
+		return false;
+	}
+
+	//2. if err up, return false
+	if(IsErrTrue()) return false;
 
 	return true;
 }
 
 
 
+void BG95::InitProcess()
+{
+	//0. add read data queue and
+	if(IsRequestQueueEmpty() & IsRequestQueueEmpty() & IsRunTrue()) ReadSchduleCommandEnqueue();
+
+	//1. Initialize Communication buffer
+	this->comm_stat_reg_ = COMM_OK;
+
+	return;
+}
+
+void BG95::SendProcess()
+{
+	//0. the tick check for preventing 1-receiving by 1-drive
+	if(!(IsSendTickReached())) return;
+
+	//1. Check Queue is empty
+	if(IsAsyncRequestQueueEmpty() & IsRequestQueueEmpty()) return;
+
+	//2. Check ready for sending
+	if(!(this->is_send_ready_)) return;
+
+	//3. Get the high priority queue data. and If send data is none, return function
+	if(SelectSendQueueType() == none) return;
+
+	//4. Check CAN comm. sending failed, Only Accept status when HAL_OK
+	if(SendRequest()!= HAL_OK) return;
+
+	//5. Flag Set Off
+	this->is_send_ready_ = false;
+
+	//6. time-stamp recode
+	this->comm_timestamp_ = HAL_GetTick();
+
+	return;
+}
+
+void BG95::RecvProcess()
+{
+	//when the write command send
+	if((!(this->is_send_ready_)))
+	{
+		//0. if Send is failed, Exit process
+		if((this->comm_stat_reg_) != COMM_OK) return;
+
+		//1. check timeed out
+		if(!(IsRecvTimedOut())) return;
+
+		//1-1. Check CAN comm. Receiving success or not
+		if(RecvResponse() == HAL_ERROR) return;
+
+		//1-2. verify receiving data - exception case is included
+		if(!(DataAnalysis())) return;
+
+		//1-3. Set flag to true
+		this->is_send_ready_ = true;
+	}
+	//When the receiving data from devices without sending request
+	else
+	{
+		//1. Check CAN comm. Receiving success or not
+		if(RecvResponse() == HAL_ERROR) return;
+	}
+
+	/*send,receive data is successfully matched*/
+
+	//2. Received data process
+	RecvDataProcess();
+
+	//3. Delete request & receive queue
+	QueueDeleteRequest();
+
+	QueueDeleteReceive();
+
+	return;
+}
+
+void BG95::ErrorCheckProcess()
+{
+	CommErrorCheck();
+
+	ModuleErrorCheck();
+
+	return;
+}
 
 
 //--------------------------------------------------------------------Applications
@@ -572,13 +685,9 @@ void BG95::Initialization()
 
 	InitializeCommand();
 
-	if(HAL_CAN_Initialization()) return;
+	HAL_CAN_Initialization();
 
 	this->is_init_ = true;
-
-	this->is_run_ = false;
-
-	this->is_err_ = false;
 
 	this->is_send_ready_ = true;
 
@@ -587,38 +696,37 @@ void BG95::Initialization()
 
 void BG95::DeInitialization()
 {
-	AsyncRequestQueue.clear();
-
-	RequestQueue.clear();
-
-	ReceiveQueue.clear();
-
-	this->is_init_ = false;
-
-	this->is_run_ = false;
-
-	this->is_err_ = false;
-
-	this->is_send_ready_ = false;
+	IntializeParameters();
 
 	HAL_CAN_DeInitialization();
 
 	return;
 }
 
-
 void BG95::Drive()
 {
-	if(!(this->is_init_)) return;
+	if(!(DriveCheck())) return;
+
+	InitProcess();
 
 	SendProcess();
 
 	RecvProcess();
 
+	ErrorCheckProcess();
+
 	return;
 }
 
+//Internal Status Check
+const bool BG95::IsInitTrue() {return this->is_init_;}
+const bool BG95::IsRunTrue() {return this->is_run_;}
+const bool BG95::IsErrTrue() {return this->is_err_;}
 
+const uint32_t BG95::GetModuleErrorData() {return this->module_error_data_;}
+
+
+//dunkor device values
 //Read value functions
 const uint32_t BG95::GetMotorVoltage() {return this->motor_voltage_;}
 const int32_t BG95::GetMotorCurrent() {return this->motor_current_;}
@@ -632,11 +740,13 @@ const uint32_t BG95::GetMotorStatus() {return this->dev_stat_reg_;}
 const uint32_t BG95::GetMotorErrData() {return this->dev_err_data_;}
 
 //read status functions
-const bool BG95::IsPowerUp() {return (this->dev_stat_reg_& 0x01);}
-const bool BG95::IsErrUp() {return (this->dev_stat_reg_& 0x02);}
+const bool BG95::IsMotorPowerUp() {return (this->dev_stat_reg_& 0x01);}
+const bool BG95::IsMotorErrUp() {return (this->dev_stat_reg_& 0x02);}
 const bool BG95::IsMotorMoving() {return (this->dev_stat_reg_& 0x08);}
 const bool BG95::IsTargetPosReached() {return (this->dev_stat_reg_& 0x10);}
 const bool BG95::IsMotorReachLimit() {return (this->dev_stat_reg_& 0x4000);}
+
+
 
 
 
