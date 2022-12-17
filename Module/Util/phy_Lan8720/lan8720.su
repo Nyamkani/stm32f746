@@ -1,0 +1,8 @@
+../Core/Module/Util/phy_Lan8720/lan8720.cpp:77:27:ARM_DRIVER_VERSION GetVersion()	16	static
+../Core/Module/Util/phy_Lan8720/lan8720.cpp:90:16:int32_t Initialize(ARM_ETH_PHY_Read_t, ARM_ETH_PHY_Write_t)	16	static
+../Core/Module/Util/phy_Lan8720/lan8720.cpp:111:16:int32_t Uninitialize()	4	static
+../Core/Module/Util/phy_Lan8720/lan8720.cpp:127:16:int32_t PowerControl(ARM_POWER_STATE)	24	static
+../Core/Module/Util/phy_Lan8720/lan8720.cpp:187:16:int32_t SetInterface(uint32_t)	16	static
+../Core/Module/Util/phy_Lan8720/lan8720.cpp:207:16:int32_t SetMode(uint32_t)	24	static
+../Core/Module/Util/phy_Lan8720/lan8720.cpp:254:27:ARM_ETH_LINK_STATE GetLinkState()	16	static
+../Core/Module/Util/phy_Lan8720/lan8720.cpp:271:26:ARM_ETH_LINK_INFO GetLinkInfo()	16	static
