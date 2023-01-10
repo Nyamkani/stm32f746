@@ -6,7 +6,7 @@
 ../Core/Src/main.cpp:201:6:void StartInitTask(const void*)	16	static
 ../Core/Src/main.cpp:231:6:void StartCommonSensorTask(const void*)	24	static
 ../Core/Src/main.cpp:255:6:void StartPGV100Task(const void*)	24	static
-../Core/Src/main.cpp:291:6:void StartETHTask(const void*)	24	static
-../Core/Src/main.cpp:316:1:void __static_initialization_and_destruction_0(int, int)	16	static
-../Core/Src/main.cpp:316:1:cpp)	8	static
-../Core/Src/main.cpp:316:1:cpp)	8	static
+../Core/Src/main.cpp:296:6:void StartETHTask(const void*)	24	static
+../Core/Src/main.cpp:321:1:void __static_initialization_and_destruction_0(int, int)	16	static
+../Core/Src/main.cpp:321:1:cpp)	8	static
+../Core/Src/main.cpp:321:1:cpp)	8	static

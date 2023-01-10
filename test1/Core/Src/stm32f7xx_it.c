@@ -87,6 +87,7 @@ void NMI_Handler(void)
   /* USER CODE END NonMaskableInt_IRQn 1 */
 }
 
+int debug =0;
 /**
   * @brief This function handles Hard fault interrupt.
   */
@@ -98,6 +99,7 @@ void HardFault_Handler(void)
   while (1)
   {
     /* USER CODE BEGIN W1_HardFault_IRQn 0 */
+	  if(debug == 1) break;
     /* USER CODE END W1_HardFault_IRQn 0 */
   }
 }

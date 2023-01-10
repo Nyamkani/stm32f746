@@ -100,7 +100,6 @@ static int TcpServerDriveSeq()
 		netconn_close(newconn);
 		netconn_delete(newconn);
 	}
-	return 0;
 }
 
 

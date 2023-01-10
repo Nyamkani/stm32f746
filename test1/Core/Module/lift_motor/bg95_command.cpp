@@ -26,41 +26,41 @@ void BG95::MandatoryParamEnqueue()
 	// a.) Device parameters:
 
 	//Motor Type
-	AsyncWriteDataEnqueue(MOTOR_Type, 0, BLDC);      // Motor - Type: 1 = brushless Motor (BLDC)
-	AsyncWriteDataEnqueue(MOTOR_PolN, 0, 8);      // Motor - Number of Poles (8 - bg95)
+	WriteDataEnqueue(MOTOR_Type, 0, BLDC);      // Motor - Type: 1 = brushless Motor (BLDC)
+	WriteDataEnqueue(MOTOR_PolN, 0, 8);      // Motor - Number of Poles (8 - bg95)
 
 	//Encoder feedback enable
-	AsyncWriteDataEnqueue(VEL_Feedback, 0, 2410);      //  Encoder feedback for the velocity controller
-	AsyncWriteDataEnqueue(SVEL_Feedback, 0, 2410);      //  Encoder feedback for the secondary velocity controller
-	AsyncWriteDataEnqueue(MOTOR_ENC_Resolution, 0, 4096);      // Encoder resolution in counts: sin/cos = 4096, 1000h
+	WriteDataEnqueue(VEL_Feedback, 0, 2410);      //  Encoder feedback for the velocity controller
+	WriteDataEnqueue(SVEL_Feedback, 0, 2410);      //  Encoder feedback for the secondary velocity controller
+	WriteDataEnqueue(MOTOR_ENC_Resolution, 0, 4096);      // Encoder resolution in counts: sin/cos = 4096, 1000h
 
 	// b.) Current limits (Attention: Note the motor data sheet!):
-	AsyncWriteDataEnqueue(CURR_LimitMaxPos, 0, 50000);      // Curr ent limit - max. positive [mA]
-	AsyncWriteDataEnqueue(CURR_LimitMaxNeg, 0, 50000);      // Current limit - max. negative [mA]
+	WriteDataEnqueue(CURR_LimitMaxPos, 0, 50000);      // Curr ent limit - max. positive [mA]
+	WriteDataEnqueue(CURR_LimitMaxNeg, 0, 50000);      // Current limit - max. negative [mA]
 
-	AsyncWriteDataEnqueue(CURR_DynLimit, CURR_DynLimitMode, Disable);      // Dynamic Current Limit I*t - Mode: 1 = active
-	AsyncWriteDataEnqueue(CURR_DynLimit, CURR_DynLimitPeak, 12000);      // Dynamic Current Limit I*t - Peak Current [mA]
-	AsyncWriteDataEnqueue(CURR_DynLimit, CURR_DynLimitCont, 2640);      // Dynamic Current Limit I*t - Continuous Current [mA]
-	AsyncWriteDataEnqueue(CURR_DynLimit, CURR_DynLimitTime, 1000);      // Dynamic Current Limit I*t - Time [ms]
+	WriteDataEnqueue(CURR_DynLimit, CURR_DynLimitMode, Disable);      // Dynamic Current Limit I*t - Mode: 1 = active
+	WriteDataEnqueue(CURR_DynLimit, CURR_DynLimitPeak, 12000);      // Dynamic Current Limit I*t - Peak Current [mA]
+	WriteDataEnqueue(CURR_DynLimit, CURR_DynLimitCont, 2640);      // Dynamic Current Limit I*t - Continuous Current [mA]
+	WriteDataEnqueue(CURR_DynLimit, CURR_DynLimitTime, 1000);      // Dynamic Current Limit I*t - Time [ms]
 
 	// c.) Controller parameters
 	// Primary Velocity controller
-	AsyncWriteDataEnqueue(VEL_Kp, 0, 500);      // PID-Position Controller - Proportional gain
-	AsyncWriteDataEnqueue(VEL_Ki, 0, 50);      // PID-Position Controller - Integral Factor
-	AsyncWriteDataEnqueue(VEL_Kd, 0, 1);      // PID-Position Controller - Differential gain
+	WriteDataEnqueue(VEL_Kp, 0, 500);      // PID-Position Controller - Proportional gain
+	WriteDataEnqueue(VEL_Ki, 0, 50);      // PID-Position Controller - Integral Factor
+	WriteDataEnqueue(VEL_Kd, 0, 1);      // PID-Position Controller - Differential gain
 
-	AsyncWriteDataEnqueue(VEL_ILimit, 0, 10000);      // integration limit of the position controller
-	AsyncWriteDataEnqueue(VEL_Kvff, 0, 1000);      // velocity feed foward factor
-	AsyncWriteDataEnqueue(VEL_Kaff, 0, 1);      // Accelation feed foward factor
+	WriteDataEnqueue(VEL_ILimit, 0, 10000);      // integration limit of the position controller
+	WriteDataEnqueue(VEL_Kvff, 0, 1000);      // velocity feed foward factor
+	WriteDataEnqueue(VEL_Kaff, 0, 1);      // Accelation feed foward factor
 
 	// Secondary Velocity controller
-	AsyncWriteDataEnqueue(SVEL_Kp, 0, 500);      // PI-Velocity Controller - Proportional gain
-	AsyncWriteDataEnqueue(SVEL_Ki, 0, 50);      // PI-Velocity Controller - Integration constant
-	AsyncWriteDataEnqueue(SVEL_KIxR, 0, 1);      // compensation factor
+	WriteDataEnqueue(SVEL_Kp, 0, 500);      // PI-Velocity Controller - Proportional gain
+	WriteDataEnqueue(SVEL_Ki, 0, 50);      // PI-Velocity Controller - Integration constant
+	WriteDataEnqueue(SVEL_KIxR, 0, 1);      // compensation factor
 
 	// Current controller
-	AsyncWriteDataEnqueue(CURR_Kp, 0, 35);      // PI-Current Controller - Proportional gain
-	AsyncWriteDataEnqueue(CURR_Ki, 0, 2);      // PI-Current Controller - Integration constant
+	WriteDataEnqueue(CURR_Kp, 0, 35);      // PI-Current Controller - Proportional gain
+	WriteDataEnqueue(CURR_Ki, 0, 2);      // PI-Current Controller - Integration constant
 }
 
 void BG95::RecommendationParamEnqueue()
@@ -75,21 +75,21 @@ void BG95::RecommendationParamEnqueue()
 	const uint32_t qdec_rpm = this->qdec_rpm_;
 	const uint32_t qdec_time = this->qdec_time_;
 
-	AsyncWriteDataEnqueue(VEL_DesiredValue, 0, drive_vel);      // Velocity - rpm
+	WriteDataEnqueue(VEL_DesiredValue, 0, drive_vel);      // Velocity - rpm
 
-	AsyncWriteDataEnqueue(VEL_LimitMaxPos, 0, max_vel);      // Velocity Max. Limit - Positive Direction - rpm
-	AsyncWriteDataEnqueue(VEL_LimitMaxNeg, 0, max_vel);      // Velocity Max. Limit - Negative Direction - rpm
+	WriteDataEnqueue(VEL_LimitMaxPos, 0, max_vel);      // Velocity Max. Limit - Positive Direction - rpm
+	WriteDataEnqueue(VEL_LimitMaxNeg, 0, max_vel);      // Velocity Max. Limit - Negative Direction - rpm
 
-	AsyncWriteDataEnqueue(VEL_Acc_dV, 0, acc_rpm);      // Velocity Acceleration - Delta v
-	AsyncWriteDataEnqueue(VEL_Acc_dT, 0, acc_time);      // Velocity Acceleration - Delta t
+	WriteDataEnqueue(VEL_Acc_dV, 0, acc_rpm);      // Velocity Acceleration - Delta v
+	WriteDataEnqueue(VEL_Acc_dT, 0, acc_time);      // Velocity Acceleration - Delta t
 
-	AsyncWriteDataEnqueue(VEL_Dec_dV, 0, dec_rpm);      // Velocity Deceleration - Delta v
-	AsyncWriteDataEnqueue(VEL_Dec_dT, 0, dec_time);      // Velocity Deceleration - Delta t
+	WriteDataEnqueue(VEL_Dec_dV, 0, dec_rpm);      // Velocity Deceleration - Delta v
+	WriteDataEnqueue(VEL_Dec_dT, 0, dec_time);      // Velocity Deceleration - Delta t
 
-	AsyncWriteDataEnqueue(VEL_Dec_QuickStop_dV, 0, qdec_rpm);      // Velocity Deceleration - Quick-Stop - Delta v
+	WriteDataEnqueue(VEL_Dec_QuickStop_dV, 0, qdec_rpm);      // Velocity Deceleration - Quick-Stop - Delta v
 	AsyncWriteDataEnqueue(VEL_Dec_QuickStop_dT, 0, qdec_time);      // Velocity Deceleration - Quick-Stop - Delta t
 
-	AsyncWriteDataEnqueue(DEV_Cmd, 0, CMD_Update);      // update velocity parameters
+	WriteDataEnqueue(DEV_Cmd, 0, CMD_Update);      // update velocity parameters
 }
 
 void BG95::BreakManagementEnqueue()
@@ -98,32 +98,32 @@ void BG95::BreakManagementEnqueue()
 	//AsyncWriteDataEnqueue(0x3150, 0, 2);      // Open Break
 
 	/*Break management configuration.*/
-	AsyncWriteDataEnqueue(Brake_Management, BM_Config, 3);      // Brake Management - Configuration - auto disable when the movoment ends
+	WriteDataEnqueue(Brake_Management, BM_Config, 3);      // Brake Management - Configuration - auto disable when the movoment ends
 
-	AsyncWriteDataEnqueue(Brake_Management, BM_OffOrConditionFlags, 5);      // Brake Management - Activating Condition
+	WriteDataEnqueue(Brake_Management, BM_OffOrConditionFlags, 5);      // Brake Management - Activating Condition
 
-	AsyncWriteDataEnqueue(Brake_Management, BM_OnOrConditionFlags, 5);      // Brake Management - Deactivating Condition
+	WriteDataEnqueue(Brake_Management, BM_OnOrConditionFlags, 5);      // Brake Management - Deactivating Condition
 
-	AsyncWriteDataEnqueue(Brake_Management, BM_Dout, DOut_1_LAtive);      // Brake Management - Brake Output(Digital output 1 High-active)
+	WriteDataEnqueue(Brake_Management, BM_Dout, DOut_1_LAtive);      // Brake Management - Brake Output(Digital output 1 High-active)
 
-	AsyncWriteDataEnqueue(Brake_Management, BM_OffDelay1, 200);      // Brake Management - Brake Output
+	WriteDataEnqueue(Brake_Management, BM_OffDelay1, 200);      // Brake Management - Brake Output
 
-	AsyncWriteDataEnqueue(Brake_Management, BM_OffDelay2, 200);      // Brake Management - Brake Output
+	WriteDataEnqueue(Brake_Management, BM_OffDelay2, 200);      // Brake Management - Brake Output
 
-	AsyncWriteDataEnqueue(Brake_Management, BM_OnDelay1, 200);      // Brake Management - Brake Output
+	WriteDataEnqueue(Brake_Management, BM_OnDelay1, 200);      // Brake Management - Brake Output
 
-	AsyncWriteDataEnqueue(Brake_Management, BM_OnDelay2, 200);      // Brake Management - Brake Output
+	WriteDataEnqueue(Brake_Management, BM_OnDelay2, 200);      // Brake Management - Brake Output
 }
 
 void BG95::HardwareParamEnqueue()
 {
 	//Etc. - error following
-	AsyncWriteDataEnqueue(POS_FollowingErrorWindow, 0, 1000);   // position following error - window
+	WriteDataEnqueue(POS_FollowingErrorWindow, 0, 1000);   // position following error - window
 
 	//save all config.
-	AsyncWriteDataEnqueue(DEV_Cmd, 0, CMD_StoreParam);      //DeviceCommand -  Stores actual parameters
+	WriteDataEnqueue(DEV_Cmd, 0, CMD_StoreParam);      //DeviceCommand -  Stores actual parameters
 
-	AsyncWriteDataEnqueue(DEV_Cmd, 0, CMD_Continue);      //DeviceCommand -  Stores actual parameters
+	WriteDataEnqueue(DEV_Cmd, 0, CMD_Continue);      //DeviceCommand -  Stores actual parameters
 }
 
 
@@ -177,7 +177,7 @@ void BG95::SetSubVelocityControlModeEnqueue()
 	AsyncWriteDataEnqueue(DEV_Cmd, 0, CMD_Continue);      // continue
 }
 
-void BG95::ReadSchduleCommandEnqueue()
+void BG95::SchduleCommandEnqueue()
 {
 	//ReadDataEnqueue(0x3110, 0, 0);      // actual power voltage
 
@@ -219,7 +219,9 @@ void BG95::ReadSchduleCommandEnqueue()
 //---------------------------------------------------------------------------------------------------Commands
 void BG95::InitializeCommand()
 {
-	SetPowerDisableCommand();
+	WriteDataEnqueue(DEV_Cmd, 0, Enable);  // reset error register
+
+	WriteDataEnqueue(DEV_Enable, 0, Disable);
 
 	MandatoryParamEnqueue();
 
@@ -229,9 +231,11 @@ void BG95::InitializeCommand()
 
 	HardwareParamEnqueue();
 
-	ResetErrorCommand();
+	WriteDataEnqueue(DEV_Cmd, 0, Enable);      // reset error register
 
-	SetPowerEnableCommand();
+	WriteDataEnqueue(DEV_Enable, 0, Enable);
+
+	WriteDataEnqueue(DEV_Cmd, 0, CMD_Halt); //stop motor
 }
 
 void BG95::AbsPosCommand(int vel, uint32_t acc, uint32_t dec, int tpos)
@@ -450,5 +454,6 @@ void BG95::ResetPositionCommand()
 
 void BG95::ResetErrorCommand()
 {
-	AsyncWriteDataEnqueue(DEV_Cmd, 0, Enable);      // reset error register
+	WriteDataEnqueue(DEV_Cmd, 0, Enable);      // reset error register
+	//AsyncWriteDataEnqueue(DEV_Cmd, 0, Enable);      // reset error register
 }

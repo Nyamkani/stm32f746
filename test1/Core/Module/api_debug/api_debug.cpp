@@ -104,16 +104,19 @@ void DebugDrive()
 		//case '5': SensorManager::GetInstance().CommonSensorDrive(); break;
 
 		//can test
-		case '1': bg95test.AbsPosCommand(1000, 1000, 1000, 100000); break;
-		case '2': bg95test.RelPosCommand(1000, 1000, 1000, 100000); break;
-		case '3': bg95test.SubVelCommand(200, 1000, 1000); break;
-		case '4': bg95test.SubVelCommand(-200, 1000, 1000); break;
+		//case '1': bg95test.AbsPosCommand(1000, 1000, 1000, 100000); break;
+		case '0': bg95test.AbsPosCommand(1000, 1000, 1000, 0); break;
+		case '1': bg95test.RelPosCommand(1000, 1000, 1000, -200000); break;
+		case '2': bg95test.RelPosCommand(1000, 1000, 1000, 200000); break;
+		case '3': bg95test.VelCommand(200, 1000, 1000); break;
+		case '4': bg95test.VelCommand(-200, 1000, 1000); break;
 		case '5': bg95test.SetDirectionNormalCommand(); break;
 		case '6': bg95test.SetDirectionReverseCommand(); break;
 		//case '6': bg95test.SetMaxVelocityCommand(a_); break;
 		case '7': bg95test.Initialization(); break;
-		case '8': bg95test.ClearParamCommand(); break;
+		case '8': bg95test.ResetErrorCommand(); break;
 		case '9': bg95test.StopMotorCommand(); break;
+
 
 		default: break;
 	}

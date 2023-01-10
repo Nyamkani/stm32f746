@@ -132,7 +132,7 @@ int main(void)
 	//sensor manager initialize
 	//need some times for boot pgv100
 	SensorManager::GetInstance().CommonSensorInitialize();
-	SensorManager::GetInstance().PGV100Initialize();
+	//SensorManager::GetInstance().PGV100Initialize();
 
 	bg95test.Initialization();
 
@@ -161,8 +161,8 @@ int main(void)
   InitTaskHandle = osThreadCreate(osThread(InitTask), NULL);
 
   /* definition and creation of CommonSensorTask */
-  osThreadDef(CommonSensorTas, StartCommonSensorTask, osPriorityLow, 0, configMINIMAL_STACK_SIZE);
-  CommonSensorTasHandle = osThreadCreate(osThread(CommonSensorTas), NULL);
+  osThreadDef(CommonSensorTask, StartCommonSensorTask, osPriorityLow, 0, configMINIMAL_STACK_SIZE);
+  CommonSensorTasHandle = osThreadCreate(osThread(CommonSensorTask), NULL);
 
   /* definition and creation of PGV100Task */
   //osThreadDef(PGV100Task, StartPGV100Task, osPriorityAboveNormal, 0, configMINIMAL_STACK_SIZE);
@@ -262,6 +262,11 @@ void StartPGV100Task(void const *argument)
   for(;;)
   {
 	//vTaskDelay(pdMS_TO_TICKS(30));
+	  /*
+	SensorManager::GetInstance().PCV80Drive();
+	pgvxpos = SensorManager::GetInstance().PCV80GetXData();
+	pgvypos = SensorManager::GetInstance().PCV80GetYData();
+	*/
 	SensorManager::GetInstance().PGV100Drive();
 
 	pgvxpos = SensorManager::GetInstance().PGV100GetXData();
@@ -291,7 +296,7 @@ void StartPGV100Task(void const *argument)
 void StartETHTask(void const *argument)
 {
   /* USER CODE BEGIN StartETHTask */
-	const TickType_t xTime = pdMS_TO_TICKS(50);
+	const TickType_t xTime = pdMS_TO_TICKS(2);
 	TickType_t xLastWakeTime = xTaskGetTickCount();
   /* Infinite loop */
   for(;;)

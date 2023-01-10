@@ -17,7 +17,7 @@ int HAL_UsartTransmit(UART_HandleTypeDef* huartx, uint8_t* todata, int datalengt
     /* Process Locked */
     // __HAL_LOCK(huartx);
 
-	return HAL_UART_Transmit(huartx, todata, datalength, 10);
+	return HAL_UART_Transmit(huartx, todata, datalength, CommTimeOut_1ms);
 }
 
 int HAL_UsartReceive(UART_HandleTypeDef* huartx, uint8_t* fromdata, int datalength)
@@ -26,7 +26,7 @@ int HAL_UsartReceive(UART_HandleTypeDef* huartx, uint8_t* fromdata, int dataleng
     /* Process Locked */
     // __HAL_LOCK(huartx);
 
-	return HAL_UART_Receive(huartx, fromdata, datalength, 10);
+	return HAL_UART_Receive(huartx, fromdata, datalength, CommTimeOut_1ms);
 }
 
 
@@ -34,16 +34,47 @@ int HAL_UsartReceive(UART_HandleTypeDef* huartx, uint8_t* fromdata, int dataleng
 int HAL_CANTransmit(CAN_HandleTypeDef* hcanx, const CAN_TxHeaderTypeDef *pHeader,
 					const uint8_t *aData, uint32_t *pTxMailbox)
 {
-	return HAL_CAN_AddTxMessage(hcanx, pHeader, aData, pTxMailbox);
+	int state = HAL_ERROR;
+	//uint32_t now_ = HAL_GetTick();
+	//uint16_t wait_time_ = CommTimeOut_1ms;
+
+	state =  HAL_CAN_AddTxMessage(hcanx, pHeader, aData, pTxMailbox);
+
+	/* Monitor the Tx mailboxes availability until at least one Tx mailbox is free*/
+	while(HAL_CAN_GetTxMailboxesFreeLevel(hcanx) != 3);
+
+	//waiting for message to leave
+	while((HAL_CAN_IsTxMessagePending((hcanx) , *pTxMailbox)));
+
+	//waiting for transmission request to be completed by checking RQCPx
+	while( !(hcanx->Instance->TSR & ( 0x1 << (7 * ( (*pTxMailbox) - 1 )))));
+
+	return state;
 }
 
 int HAL_CANReceive(CAN_HandleTypeDef *hcanx, CAN_RxHeaderTypeDef *pHeader, uint8_t *aData)
 {
-	//while(HAL_CAN_GetRxFifoFillLevel(hcanx, CAN_RX_FIFO0 )!= HAL_OK)
-	return HAL_CAN_GetRxMessage(hcanx, CAN_RX_FIFO0, pHeader, aData);
+	int state = HAL_ERROR;
+	uint32_t now_= HAL_GetTick();
+	//uint16_t wait_time_ = CommTimeOut_1ms;
+	uint16_t wait_time_ = 0;
+	while(1)
+	{
+		/* Monitoring queue until at least one message is received */
+		if(HAL_CAN_GetRxFifoFillLevel(hcanx, CAN_RX_FIFO0) >= 1)
+		{
+			state = HAL_CAN_GetRxMessage(hcanx, CAN_RX_FIFO0, pHeader, aData);
+			break;
+		}
+
+		/*for TimeOut*/
+		if((HAL_GetTick() - now_) >= wait_time_)
+		{
+			state = HAL_TIMEOUT; break;
+		}
+	}
+	return state;
 }
-
-
 
 void HAL_CAN_RxFifo0MsgPendingCallback(CAN_HandleTypeDef *CanHandle)
 {
@@ -56,10 +87,7 @@ void HAL_CAN_RxFifo0MsgPendingCallback(CAN_HandleTypeDef *CanHandle)
     /* Reception Error */
     Error_Handler();
   }
-
 }
-
-
 
 
 //----------------------------------------------------------------------------------------MODBUS RTU

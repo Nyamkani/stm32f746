@@ -85,7 +85,7 @@ void MX_LWIP_Init(void)
   /* add the network interface (IPv4/IPv6) with RTOS */
   netif_add(&gnetif, &ipaddr, &netmask, &gw, NULL, &ethernetif_init, &tcpip_input);
 
-  /* Registers the default network intcerface */
+  /* Registers the default network interface */
   netif_set_default(&gnetif);
 
   if (netif_is_link_up(&gnetif))

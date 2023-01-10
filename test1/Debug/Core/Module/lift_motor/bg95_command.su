@@ -10,25 +10,25 @@
 ../Core/Module/lift_motor/bg95_command.cpp:157:6:void BG95::RelPosCommandEnqueue(int)	24	static
 ../Core/Module/lift_motor/bg95_command.cpp:166:6:void BG95::SetVelocityControlModeEnqueue()	16	static
 ../Core/Module/lift_motor/bg95_command.cpp:173:6:void BG95::SetSubVelocityControlModeEnqueue()	16	static
-../Core/Module/lift_motor/bg95_command.cpp:180:6:void BG95::ReadSchduleCommandEnqueue()	16	static
+../Core/Module/lift_motor/bg95_command.cpp:180:6:void BG95::SchduleCommandEnqueue()	16	static
 ../Core/Module/lift_motor/bg95_command.cpp:220:6:void BG95::InitializeCommand()	16	static
-../Core/Module/lift_motor/bg95_command.cpp:237:6:void BG95::AbsPosCommand(int, uint32_t, uint32_t, int)	40	static
-../Core/Module/lift_motor/bg95_command.cpp:261:6:void BG95::RelPosCommand(int, uint32_t, uint32_t, int)	40	static
-../Core/Module/lift_motor/bg95_command.cpp:285:6:void BG95::VelCommand(int, uint32_t, uint32_t)	40	static
-../Core/Module/lift_motor/bg95_command.cpp:307:6:void BG95::SubVelCommand(int, uint32_t, uint32_t)	40	static
-../Core/Module/lift_motor/bg95_command.cpp:328:6:void BG95::ClearParamCommand()	16	static
-../Core/Module/lift_motor/bg95_command.cpp:330:6:void BG95::StopMotorCommand()	16	static
-../Core/Module/lift_motor/bg95_command.cpp:332:6:void BG95::EMGStopMotorCommand()	16	static
-../Core/Module/lift_motor/bg95_command.cpp:339:6:void BG95::SetVelocityCommand(int32_t)	24	static
-../Core/Module/lift_motor/bg95_command.cpp:352:6:void BG95::SetSubVelocityCommand(int32_t)	24	static
-../Core/Module/lift_motor/bg95_command.cpp:361:6:void BG95::SetAccelerationCommand(uint32_t)	24	static
-../Core/Module/lift_motor/bg95_command.cpp:372:6:void BG95::SetDecelerationCommand(uint32_t)	24	static
-../Core/Module/lift_motor/bg95_command.cpp:383:6:void BG95::SetQuickStopDecelerationCommand(uint32_t)	24	static
-../Core/Module/lift_motor/bg95_command.cpp:394:6:void BG95::SetDirectionNormalCommand()	24	static
-../Core/Module/lift_motor/bg95_command.cpp:405:6:void BG95::SetDirectionReverseCommand()	24	static
-../Core/Module/lift_motor/bg95_command.cpp:419:6:void BG95::SetPowerEnableCommand()	16	static
-../Core/Module/lift_motor/bg95_command.cpp:424:6:void BG95::SetPowerDisableCommand()	16	static
-../Core/Module/lift_motor/bg95_command.cpp:429:6:void BG95::SetPositionMinLimitCommand()	16	static
-../Core/Module/lift_motor/bg95_command.cpp:434:6:void BG95::SetPositionMaxLimitCommand()	16	static
-../Core/Module/lift_motor/bg95_command.cpp:446:6:void BG95::ResetPositionCommand()	16	static
-../Core/Module/lift_motor/bg95_command.cpp:451:6:void BG95::ResetErrorCommand()	16	static
+../Core/Module/lift_motor/bg95_command.cpp:241:6:void BG95::AbsPosCommand(int, uint32_t, uint32_t, int)	40	static
+../Core/Module/lift_motor/bg95_command.cpp:265:6:void BG95::RelPosCommand(int, uint32_t, uint32_t, int)	40	static
+../Core/Module/lift_motor/bg95_command.cpp:289:6:void BG95::VelCommand(int, uint32_t, uint32_t)	40	static
+../Core/Module/lift_motor/bg95_command.cpp:311:6:void BG95::SubVelCommand(int, uint32_t, uint32_t)	40	static
+../Core/Module/lift_motor/bg95_command.cpp:332:6:void BG95::ClearParamCommand()	16	static
+../Core/Module/lift_motor/bg95_command.cpp:334:6:void BG95::StopMotorCommand()	16	static
+../Core/Module/lift_motor/bg95_command.cpp:336:6:void BG95::EMGStopMotorCommand()	16	static
+../Core/Module/lift_motor/bg95_command.cpp:343:6:void BG95::SetVelocityCommand(int32_t)	24	static
+../Core/Module/lift_motor/bg95_command.cpp:356:6:void BG95::SetSubVelocityCommand(int32_t)	24	static
+../Core/Module/lift_motor/bg95_command.cpp:365:6:void BG95::SetAccelerationCommand(uint32_t)	24	static
+../Core/Module/lift_motor/bg95_command.cpp:376:6:void BG95::SetDecelerationCommand(uint32_t)	24	static
+../Core/Module/lift_motor/bg95_command.cpp:387:6:void BG95::SetQuickStopDecelerationCommand(uint32_t)	24	static
+../Core/Module/lift_motor/bg95_command.cpp:398:6:void BG95::SetDirectionNormalCommand()	24	static
+../Core/Module/lift_motor/bg95_command.cpp:409:6:void BG95::SetDirectionReverseCommand()	24	static
+../Core/Module/lift_motor/bg95_command.cpp:423:6:void BG95::SetPowerEnableCommand()	16	static
+../Core/Module/lift_motor/bg95_command.cpp:428:6:void BG95::SetPowerDisableCommand()	16	static
+../Core/Module/lift_motor/bg95_command.cpp:433:6:void BG95::SetPositionMinLimitCommand()	16	static
+../Core/Module/lift_motor/bg95_command.cpp:438:6:void BG95::SetPositionMaxLimitCommand()	16	static
+../Core/Module/lift_motor/bg95_command.cpp:450:6:void BG95::ResetPositionCommand()	16	static
+../Core/Module/lift_motor/bg95_command.cpp:455:6:void BG95::ResetErrorCommand()	16	static

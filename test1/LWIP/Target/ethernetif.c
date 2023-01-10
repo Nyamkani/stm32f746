@@ -99,10 +99,6 @@ LWIP_MEMPOOL_DECLARE(RX_POOL, ETH_RX_BUFFER_CNT, sizeof(RxBuff_t), "Zero-copy RX
 /* Variable Definitions */
 static uint8_t RxAllocStatus;
 
-
-
-
-
 #if defined ( __ICCARM__ ) /*!< IAR Compiler */
 
 #pragma location=0x2004c000
@@ -777,10 +773,7 @@ void ethernet_link_thread(void const * argument)
 
   if(netif_is_link_up(netif) && (PHYLinkState <= LAN8742_STATUS_LINK_DOWN))
   {
-	//Due to no restart_IT point
-	///////////////////////
-    //HAL_ETH_Stop_IT(&heth);
-    //////////////////////
+    HAL_ETH_Stop_IT(&heth);
     netif_set_down(netif);
     netif_set_link_down(netif);
   }
@@ -829,7 +822,7 @@ void ethernet_link_thread(void const * argument)
 
 /* USER CODE END ETH link Thread core code for User BSP */
 
-    osDelay(1000);
+    osDelay(100);
   }
 }
 
