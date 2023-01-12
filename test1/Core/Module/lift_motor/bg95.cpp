@@ -374,41 +374,41 @@ bool BG95::IsReceiveQueueEmpty() {return ReceiveQueue.empty();}
 //Process Condition functions
 bool BG95::IsSendTickReached()
 {
-	if(++(this->drive_tick_) <= 5 ) return true;
+	if(++(this->drive_tick_) >= 5 ) return false;
 
 	this->drive_tick_ = 0;
 
-	return false;
+	return true;
 }
 
 
 bool BG95::IsRecvTimedOut()
 {
-	if((HAL_GetTick() - this->comm_timestamp_) <= this->comm_timeout_)
-	{
-		this->comm_num_try_ = 0;
-
-		return true;
-	}
-
-	if(((this->comm_num_try_)++) >= (this->comm_max_try_))
+	if((HAL_GetTick() - this->comm_timestamp_) >= this->comm_timeout_)
 	{
 		/*timeout error*/
 		this->comm_stat_reg_ |= COMM_RECV_TIMEOUT;
 
-		this->comm_num_try_ = 0;
+		return false;
 	}
 
-	return false;
+	this->comm_num_try_ = 0;
+
+	return true;
 }
 
 //--------------------------------------------------------------------Check Data Analysis Drive
-void BG95::CheckReceivedNodeId()
+bool BG95::CheckReceivedNodeId()
 {
 	/*receive */
 	int id = ReceiveQueue.front().rxid_ - this->nodeid_;
 
-	if(id == abort_id) this->comm_stat_reg_ |= CAN_ABORT_ERROR;
+	if(id == abort_id)
+	{
+		this->comm_stat_reg_ |= CAN_ABORT_ERROR;
+
+		return false;
+	}
 
 	/*
 	switch(id)
@@ -426,12 +426,13 @@ void BG95::CheckReceivedNodeId()
 		default:  break;
 	}
   */
-	return;
+
+	return true;
 }
 
 bool BG95::CheckReceivedReadFunction()
 {
-	CAN_RData_HandleTypeDef recv_data = ReceiveQueue.front();
+	const CAN_RData_HandleTypeDef recv_data = ReceiveQueue.front();
 
 	if(!( (recv_data.read_Data_Byte_[0] >= 0x40 && recv_data.read_Data_Byte_[0] <= 0x4f ) ||
 			recv_data.read_Data_Byte_[0] == 0x60 ) || (recv_data.read_Data_Byte_[0] == 0x80))
@@ -446,15 +447,13 @@ bool BG95::CheckReceivedReadFunction()
 bool BG95::CheckCommandData()
 {
 	//compare the data
-	CAN_WData_HandleTypeDef write_temp_data  = this->send_data_buffer;
-	CAN_RData_HandleTypeDef read_temp_data = ReceiveQueue.front();
+	const CAN_WData_HandleTypeDef write_temp_data  = this->send_data_buffer;
+	const CAN_RData_HandleTypeDef read_temp_data = ReceiveQueue.front();
 
 	for (int count = 1; count <= 2 ; count++)
 	{
-		if(write_temp_data.write_Data_Byte_[count] != read_temp_data.read_Data_Byte_[count])
-		{
-			return false;
-		}
+		if(write_temp_data.write_Data_Byte_[count] !=
+				read_temp_data.read_Data_Byte_[count]) return false;
 	}
 
 	return true;
@@ -463,15 +462,45 @@ bool BG95::CheckCommandData()
 bool BG95::CheckExceptionCase()
 {
 	//compare the data
-	CAN_RData_HandleTypeDef read_temp_data = ReceiveQueue.front();
+	const CAN_RData_HandleTypeDef read_temp_data = ReceiveQueue.front();
 
 	//case 1. an error occur
-	if((read_temp_data.read_Data_Byte_[1] = 0x01) & (read_temp_data.read_Data_Byte_[2] = 0x30))
-	{
-		return false;
-	}
+	if((read_temp_data.read_Data_Byte_[1] == 0x01) &
+			(read_temp_data.read_Data_Byte_[2] == 0x30)) return false;
+
+	//case 2. an abort error income
+	if(this->comm_stat_reg_ == CAN_ABORT_ERROR) return false;
 
 	return true;
+}
+
+bool BG95::DataAnalysis()
+{
+	//this is just for sequence
+	while(1)
+	{
+		//1. Check Node id
+		if(!(CheckReceivedNodeId())) break;
+
+		//2 .Check read function code
+		if(!(CheckReceivedReadFunction())) break;
+
+		//3. check both command codes
+		if(!(CheckCommandData()))
+		{
+			QueueChangeReceive();
+
+			break;
+		}
+
+		//return no error
+		return true;
+	}
+
+	//4. check Exception case - if case is included return no error
+	if(!(CheckExceptionCase())) return true;
+
+	return false;
 }
 
 
@@ -480,35 +509,35 @@ void BG95::DataProcess(int index, int subindex, int data)
 {
 	switch(index)
 	{
-		case 0x3111: this->motor_voltage_ = data ; break;
-		case 0x3113: this->motor_current_ = data ; break;
+		case IO_AIN_Voltage_Up: this->motor_voltage_ = data ; break;
+		case IO_AIN_Current_Im: this->motor_current_ = data ; break;
 
-		case 0x3760: this->target_pos_ = data ; break; //actual target position
-		case 0x3762: this->motor_pos_ = data ; break;  //actual position
+		case POS_ActualTargetPosition: this->target_pos_ = data ; break; //actual target position
+		case POS_ActualPosition: this->motor_pos_ = data ; break;  //actual position
 		//case 0x396a: this->motor_pos_ = data ; break; //encoder pos
 
-		case 0x3911: this->motor_dir_ = data ; break;//motor dir
+		case MOTOR_Polarity: this->motor_dir_ = data ; break;//motor dir
 
-		case 0x3a04:
+		case MEASUREMENT_Vel_rpm:
 			if(subindex == 1) this->motor_vel_ = data ;
 			break;
 
 		//setting parameters
-		case 0x3300: this->actual_max_vel_ = data; break;
+		case VEL_DesiredValue: this->actual_max_vel_ = data; break;
 
-		case 0x3340: this->acc_rpm_ = data; break;
-		case 0x3341: this->acc_time_ = data; break;
+		case VEL_Acc_dV: this->acc_rpm_ = data; break;
+		case VEL_Acc_dT: this->acc_time_ = data; break;
 
-		case 0x3342: this->dec_rpm_ = data; break;
-		case 0x3343: this->dec_time_ = data; break;
+		case VEL_Dec_dV: this->dec_rpm_ = data; break;
+		case VEL_Dec_dT: this->dec_time_ = data; break;
 
-		case 0x3344: this->qdec_rpm_ = data; break;
-		case 0x3345: this->qdec_time_ = data; break;
+		case VEL_Dec_QuickStop_dV: this->qdec_rpm_ = data; break;
+		case VEL_Dec_QuickStop_dT: this->qdec_time_ = data; break;
 
-		case 0x3001: this->dev_err_data_ = (uint16_t)data ; break;
-		case 0x3002: this->dev_stat_reg_ = (uint16_t)data ; break;
+		case DEV_ErrorReg: this->dev_err_data_ = (uint16_t)data ; break;
+		case DEV_Status: this->dev_stat_reg_ = (uint16_t)data ; break;
 
-		default: break;
+		default: this->dev_err_data_ = (uint16_t)data;  break;
 	}
 }
 
@@ -536,81 +565,53 @@ void BG95::RecvDataProcess()
 }
 
 
-/*this function is just hardcoded. not a final version*/
-bool BG95::DataAnalysis()
-{
-	//1. Check Node id
-	CheckReceivedNodeId();
-
-	//2. check Exception case
-	if(!(CheckExceptionCase())) return true;
-
-	//3.Check read function code
-	//if(!(CheckReceivedReadFunction())) return false;
-
-	//4. check both command codes
-	if(!(CheckCommandData()))
-	{
-		QueueChangeReceive();
-
-		return false;
-	}
-
-	return true;
-}
 
 //--------------------------------------------------------------------Error Checks
 
 
-void BG95::CommErrorCheck()
+bool BG95::CommErrorCheck()
 {
 	int status = this->comm_stat_reg_;
 	bool err_up = false;
 
-	/*if Communication is ok or recv timed out (for ingnore). exit function*/
-	if(status == COMM_OK || status == HAL_CAN_RECV_TIMEOUT)
-	{
-		this->comm_status_filter = 0;
-
-		return;
-	}
-
-	/*Check status when the desired error*/
+	/*Check status and address the desired error*/
 	switch(status)
 	{
-		case COMM_RECV_TIMEOUT: err_up = true; break;
+		/*if Communication is ok or recv timed out (for ingnore). exit function*/
+		case COMM_OK: this->comm_status_filter = 0; break;
 
-		case CAN_ABORT_ERROR: err_up = true; break;
+		case HAL_CAN_RECV_TIMEOUT: this->comm_status_filter = 0; break;
 
-		default: (this->comm_status_filter)++; break;
+		/*Error up*/
+		//case CAN_ABORT_ERROR: err_up = true; break;
+
+		case COMM_RECV_TIMEOUT: if(++(this->comm_num_try_) >= 2) {err_up = true;} break;
+
+		default: if(++(this->comm_status_filter) >= 5) {err_up = true;} break;
 	}
 
-	if((this->comm_status_filter) >= 5) err_up = true;
-
-	/*Error flag*/
-	if(err_up) this->is_err_ = true;
-
-	return;
+	return err_up;
 }
+
 
 void BG95::ModuleErrorCheck()
 {
 	int error_data = 0;
 
-
 	//0 . Device error check
-	if(IsMotorErrUp())
-	{
-		error_data = 0x10000 + GetMotorErrData();
-	}
+	if(IsMotorErrUp() || this->dev_err_data_ != 0) error_data = 0x10000 + GetMotorErrData();
 
 	//1. Comm. error check
-	else if(IsErrTrue())
-	{
-		error_data = 0x20000 + this->comm_stat_reg_;
-	}
+	else if(CommErrorCheck()) error_data = 0x20000 + this->comm_stat_reg_;
 
-	this->module_error_data_ = error_data;
+	//2. address the error data
+	if(error_data != 0)
+	{
+		this->module_error_data_ = error_data;
+
+		/*Error flag up*/
+		this->is_err_ = true;
+	}
 
 	return;
 }
@@ -618,7 +619,7 @@ void BG95::ModuleErrorCheck()
 //--------------------------------------------------------------------Drive
 bool BG95::DriveCheck()
 {
-	//0. if init is false -> go return
+	//0. if init is false -> dont drive
 	if(!(IsInitTrue())) return false;
 
 	//1. if Init. is true, and run is false -> wait for empty queue
@@ -629,7 +630,13 @@ bool BG95::DriveCheck()
 	else this->is_err_ = false;
 
 	//3. Stop all Write Command
-	if(IsErrTrue()) this->is_run_ = false;
+	if(IsErrTrue())
+	{
+		this->is_run_ = false;
+
+		//return false;
+
+	}
 
 	return true;
 }
@@ -685,42 +692,51 @@ void BG95::RecvProcess()
 		if(!(IsRecvTimedOut())) return;
 
 		//1-1. Check CAN comm. Receiving success or not
-		if(RecvResponse() == HAL_ERROR) return;
+		if((RecvResponse() != COMM_OK))	return;
 
 		//1-2. verify receiving data - exception case is included
 		if(!(DataAnalysis())) return;
 
-		//1-3. Set flag to true
 		this->is_send_ready_ = true;
+
 	}
 	//When the receiving data from devices without sending request
 	else
 	{
 		//1. Check CAN comm. Receiving success or not
-		if(RecvResponse() == HAL_ERROR) return;
+		if((RecvResponse() != COMM_OK))	return;
 	}
 
 	/*send,receive data is successfully matched*/
-
 	//2. Received data process
-	if(IsReceiveQueueEmpty()) return;
-
 	RecvDataProcess();
 
-	//3. Delete request & receive queue
+	QueueDeleteReceive();
+
 	QueueDeleteRequest();
 
-	QueueDeleteReceive();
 
 	return;
 }
 
-void BG95::ErrorCheckProcess()
+void BG95::PostProcess()
 {
-	CommErrorCheck();
-
+	//1. Check Motor Module Error
 	ModuleErrorCheck();
+/*
+	//2.If get receive with no erros. delete receive data
+	if((!(this->comm_stat_reg_== COMM_OK) || (this->comm_stat_reg_ == CAN_ABORT_ERROR))) return;
 
+	QueueDeleteReceive();
+
+	//3.If Send Request and get receive with no erros. delete request data
+	if(this->is_send_ready_ == false)
+	{
+		QueueDeleteRequest();
+
+		this->is_send_ready_ = true;
+	}
+*/
 	return;
 }
 
@@ -762,7 +778,7 @@ void BG95::Drive()
 
 	RecvProcess();
 
-	ErrorCheckProcess();
+	PostProcess();
 
 	return;
 }

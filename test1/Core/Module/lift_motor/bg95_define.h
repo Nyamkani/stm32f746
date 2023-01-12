@@ -9,6 +9,66 @@
 #define MODULE_LIFT_MOTOR_BG95_DEFINE_H_
 
 
+/*command byte data id info*/
+//-----------------------sdo data structure
+//------cob-id
+//sending 600h + id
+//reading 581h + id
+//------for reading data
+//sending for reading  - 40h
+//receiving date -  42,4f,4b,43h
+//------for writing data
+//sending for writing  - 22,2f,2b,23h
+//receiving date -  60h
+
+enum bg95_send_type
+{
+	none = 0,
+	async = 1,
+	sync = 2,
+};
+
+enum CAN_nodeid_reference
+{
+	NMT_id = 0x00,
+	abort_id = 0x80,
+	PDO_toHost = 0x180,
+	PDO_toNode = 0x200,
+	SDO_reading_id = 0x580,
+	SDO_sending_id = 0x600,
+	EMG_id = 0x700,
+};
+
+enum comm_Error_status
+{
+	COMM_OK = 0x00U,
+	HAL_CAN_SEND_ERROR = 0x0001U,
+	HAL_CAN_SEND_BUSY = 0x0002U,
+	HAL_CAN_SEND_TIMEOUT = 0x0004U,
+	HAL_CAN_RECV_ERROR = 0x0008U,
+	HAL_CAN_RECV_BUSY = 0x0010U,
+	HAL_CAN_RECV_TIMEOUT = 0x0020U,
+
+	COMM_DATA_MISMATCH = 0x0100U,
+
+	CAN_ABORT_ERROR = 0x2000U,
+	COMM_RECV_TIMEOUT = 0x8000U,
+};
+
+enum CAN_byte_size_reference
+{
+	CAN_Send_Default_Byte = 0x22,
+	CAN_Send_4_Byte = 0x23,
+	CAN_Send_2_Byte = 0x2b,
+	CAN_Send_1_Byte = 0x2f,
+
+	CAN_Recv_Default_Byte = 0x40,
+	CAN_Recv_4_Byte = 0x43,
+	CAN_Recv_2_Byte = 0x4b,
+	CAN_Recv_1_Byte = 0x4f,
+};
+
+
 //--------------------------------------------3000
 
 enum DSA_Parameters

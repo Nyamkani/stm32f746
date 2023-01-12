@@ -120,6 +120,8 @@ void BG95::HardwareParamEnqueue()
 	//Etc. - error following
 	WriteDataEnqueue(POS_FollowingErrorWindow, 0, 1000);   // position following error - window
 
+	WriteDataEnqueue(DEV_Mode, 0, MODE_Pos);      // device mode "position mode"
+
 	//save all config.
 	WriteDataEnqueue(DEV_Cmd, 0, CMD_StoreParam);      //DeviceCommand -  Stores actual parameters
 
